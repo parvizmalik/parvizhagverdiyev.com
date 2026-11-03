@@ -1,0 +1,222 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { SITE, TYPES } from '../../site.config';
+import { getPosts, formatDate, readingTime, tagSlug, postUrl } from '../../lib/posts';
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, i) => ({
+    params: { slug: post.id },
+    props: { post, newer: posts[i - 1], older: posts[i + 1] },
+  }));
+}
+
+const { post, newer, older } = Astro.props;
+const { Content, headings } = await render(post);
+const d = post.data;
+const minutes = readingTime(post.body);
+const toc = headings.filter((h) => (h.depth === 2 || h.depth === 3) && h.slug !== 'footnote-label');
+const showToc = d.toc && toc.filter((h) => h.depth === 2).length >= 3;
+const url = new URL(postUrl(post), Astro.site).toString();
+const year = d.date.getUTCFullYear();
+const bibtex = `@misc{${SITE.name.split(' ').pop()!.toLowerCase()}${year}${post.id.replace(/[^a-z0-9]/gi, '').slice(0, 12)},
+  author = {${SITE.name}},
+  title  = {${d.title}},
+  year   = {${year}},
+  url    = {${url}}
+}`;
+---
+<Base title={d.title} description={d.description} type="article" published={d.date}>
+  <div slot="top" class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
+
+  <article>
+    <header class="post-head">
+      <p class="kicker sans">
+        <a href={`/${d.type === 'essay' ? 'essays' : d.type === 'research' ? 'research' : 'interviews'}/`}>{TYPES[d.type].singular}</a>
+        {d.draft && <span class="draft">Draft</span>}
+      </p>
+      <h1>{d.title}</h1>
+      {d.description && <p class="dek">{d.description}</p>}
+      <p class="meta sans">
+        <time datetime={d.date.toISOString()}>{formatDate(d.date)}</time>
+        <span aria-hidden="true">·</span>
+        <span>{minutes} min read</span>
+        {d.guest && <><span aria-hidden="true">·</span><span>With {d.guest}</span></>}
+        {d.updated && <><span aria-hidden="true">·</span><span>Updated {formatDate(d.updated, 'short')}</span></>}
+      </p>
+      {d.pdf && (
+        <p class="pdf sans"><a href={d.pdf} target="_blank" rel="noopener">Download PDF ↗</a></p>
+      )}
+    </header>
+
+    {showToc && (
+      <nav class="toc sans" aria-label="Contents">
+        <details open>
+          <summary>Contents</summary>
+          <ol>
+            {toc.map((h) => (
+              <li class={`d${h.depth}`}><a href={`#${h.slug}`} data-toc={h.slug}>{h.text}</a></li>
+            ))}
+          </ol>
+        </details>
+      </nav>
+    )}
+
+    <div class:list={['prose', { interview: d.type === 'interview' }]} id="content">
+      <Content />
+    </div>
+
+    <footer class="post-foot sans">
+      {d.tags.length > 0 && (
+        <ul class="tags" aria-label="Tags">
+          {d.tags.map((t) => <li><a href={`/tags/${tagSlug(t)}/`}>#{t}</a></li>)}
+        </ul>
+      )}
+
+      <div class="actions">
+        <button type="button" class="btn" data-copy={url} data-done="Link copied">Copy link</button>
+        <button type="button" class="btn" id="share" data-title={d.title} data-url={url} hidden>Share…</button>
+        <a class="btn" href={`https://x.com/intent/post?text=${encodeURIComponent(d.title)}&url=${encodeURIComponent(url)}`} target="_blank" rel="noopener">Post on X</a>
+        <a class="btn" href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`} target="_blank" rel="noopener">LinkedIn</a>
+      </div>
+
+      {d.type === 'research' && (
+        <details class="cite">
+          <summary>Cite this</summary>
+          <pre><code>{bibtex}</code></pre>
+          <button type="button" class="btn" data-copy={bibtex} data-done="Copied">Copy BibTeX</button>
+        </details>
+      )}
+
+      {(newer || older) && (
+        <nav class="pager" aria-label="More writing">
+          {older ? <a href={postUrl(older)} class="prev"><span>← Previous</span>{older.data.title}</a> : <span />}
+          {newer ? <a href={postUrl(newer)} class="next"><span>Next →</span>{newer.data.title}</a> : <span />}
+        </nav>
+      )}
+    </footer>
+  </article>
+</Base>
+
+<style>
+  .progress { position: fixed; inset: 0 0 auto 0; height: 2px; z-index: 50; pointer-events: none; }
+  .progress span { display: block; height: 100%; width: 100%; background: var(--accent); transform-origin: 0 50%; transform: scaleX(0); }
+
+  .post-head { margin-bottom: 2.75rem; }
+  .kicker { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 1rem; display: flex; gap: 0.6rem; }
+  .kicker a { text-decoration: none; color: var(--accent); }
+  .draft { color: var(--bg); background: var(--accent); padding: 0 0.4rem; border-radius: 3px; }
+  h1 { font-size: 2.35rem; line-height: 1.15; font-weight: 600; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+  .dek { font-size: 1.25rem; color: var(--muted); margin: 0.9rem 0 0; line-height: 1.5; text-wrap: pretty; }
+  .meta { display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.8rem; color: var(--faint); margin: 1.25rem 0 0; }
+  .pdf { margin: 0.75rem 0 0; font-size: 0.85rem; }
+
+  .toc { font-size: 0.85rem; margin: 0 0 2.5rem; padding: 0.9rem 1.1rem; border: 1px solid var(--rule); border-radius: 8px; }
+  .toc summary { cursor: pointer; font-weight: 500; color: var(--muted); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .toc ol { list-style: none; padding: 0; margin: 0.75rem 0 0; }
+  .toc li { margin: 0.3rem 0; line-height: 1.4; }
+  .toc li.d3 { padding-left: 1rem; font-size: 0.8rem; }
+  .toc a { text-decoration: none; color: var(--muted); display: block; border-left: 2px solid transparent; padding-left: 0.6rem; margin-left: -0.6rem; }
+  .toc a:hover { color: var(--fg); }
+  .toc a.active { color: var(--accent); border-left-color: var(--accent); }
+
+  @media (min-width: 1180px) {
+    article { position: relative; }
+    .toc {
+      position: fixed; top: 9rem; left: calc(50% - var(--measure) / 2 - 15.5rem); width: 13rem;
+      border: 0; padding: 0; margin: 0; max-height: calc(100vh - 12rem); overflow-y: auto;
+    }
+    .toc summary { pointer-events: none; list-style: none; }
+    .toc summary::-webkit-details-marker { display: none; }
+  }
+
+  .post-foot { margin-top: 3.5rem; font-size: 0.85rem; }
+  .tags { list-style: none; padding: 0; margin: 0 0 1.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .tags a { text-decoration: none; color: var(--muted); background: var(--code-bg); padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.78rem; }
+  .tags a:hover { color: var(--accent); }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 1.25rem 0; border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .btn {
+    font: inherit; font-size: 0.8rem; color: var(--muted); background: transparent; cursor: pointer;
+    border: 1px solid var(--rule); border-radius: 6px; padding: 0.35rem 0.75rem; text-decoration: none;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .btn:hover { color: var(--fg); border-color: var(--faint); }
+  .cite { margin-top: 1.25rem; }
+  .cite summary { cursor: pointer; color: var(--muted); }
+  .cite pre { background: var(--code-bg); padding: 0.9rem 1rem; border-radius: 6px; overflow-x: auto; font-size: 0.78rem; margin: 0.75rem 0; }
+  .pager { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2.5rem; }
+  .pager a { text-decoration: none; font-family: var(--serif); font-size: 1.02rem; line-height: 1.35; }
+  .pager a span { display: block; font-family: var(--sans); font-size: 0.75rem; color: var(--faint); margin-bottom: 0.3rem; }
+  .pager .next { text-align: right; }
+
+  @media (max-width: 520px) {
+    h1 { font-size: 1.85rem; }
+    .dek { font-size: 1.1rem; }
+    .pager { grid-template-columns: 1fr; }
+    .pager .next { text-align: left; }
+  }
+</style>
+
+<script>
+  // Reading progress
+  const bar = document.getElementById('progress-bar');
+  const content = document.getElementById('content');
+  function onScroll() {
+    if (!bar || !content) return;
+    const rect = content.getBoundingClientRect();
+    const total = rect.height - window.innerHeight * 0.6;
+    const p = Math.min(1, Math.max(0, -rect.top / Math.max(1, total)));
+    bar.style.transform = `scaleX(${p})`;
+  }
+  addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  // Heading anchor links
+  content?.querySelectorAll('h2[id], h3[id]').forEach((h) => {
+    if (h.closest('.footnotes')) return;
+    const a = document.createElement('a');
+    a.href = `#${h.id}`;
+    a.className = 'anchor';
+    a.setAttribute('aria-label', 'Link to this section');
+    a.textContent = '#';
+    h.append(' ', a);
+  });
+
+  // Active TOC item
+  const links = new Map<string, HTMLAnchorElement>();
+  document.querySelectorAll<HTMLAnchorElement>('[data-toc]').forEach((a) => links.set(a.dataset.toc!, a));
+  if (links.size) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            links.forEach((l) => l.classList.remove('active'));
+            links.get(e.target.id)?.classList.add('active');
+          }
+        }
+      },
+      { rootMargin: '0px 0px -70% 0px' },
+    );
+    links.forEach((_, id) => { const el = document.getElementById(id); if (el) io.observe(el); });
+  }
+
+  // Copy buttons
+  document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => {
+    const label = b.textContent;
+    b.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(b.dataset.copy!);
+        b.textContent = b.dataset.done ?? 'Copied';
+      } catch { b.textContent = 'Copy failed'; }
+      setTimeout(() => (b.textContent = label), 1800);
+    });
+  });
+
+  // Native share sheet (mobile)
+  const share = document.getElementById('share') as HTMLButtonElement | null;
+  if (share && 'share' in navigator) {
+    share.hidden = false;
+    share.addEventListener('click', () => navigator.share({ title: share.dataset.title, url: share.dataset.url }).catch(() => {}));
+  }
+</script>

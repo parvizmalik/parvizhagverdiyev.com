@@ -1,0 +1,34 @@
+---
+import { TYPES, type PostType } from '../site.config';
+interface Props { active: PostType | 'all'; counts: Record<string, number> }
+const { active, counts } = Astro.props;
+const tabs = [
+  { key: 'all', label: 'All', href: '/' },
+  { key: 'essay', label: TYPES.essay.label, href: '/essays/' },
+  { key: 'research', label: TYPES.research.label, href: '/research/' },
+  { key: 'interview', label: TYPES.interview.label, href: '/interviews/' },
+];
+---
+<nav class="tabs sans" aria-label="Filter by type">
+  {tabs.map((t) => (
+    <a href={t.href} aria-current={active === t.key ? 'page' : undefined}>
+      {t.label}<span class="n">{counts[t.key] ?? 0}</span>
+    </a>
+  ))}
+</nav>
+
+<style>
+  .tabs {
+    display: flex; gap: 0.4rem; flex-wrap: wrap; margin: 0 0 2.25rem;
+    font-size: 0.8rem;
+  }
+  a {
+    text-decoration: none; color: var(--muted);
+    padding: 0.3rem 0.75rem; border: 1px solid var(--rule); border-radius: 999px;
+    display: inline-flex; gap: 0.4rem; align-items: baseline;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  a:hover { color: var(--fg); border-color: var(--faint); }
+  a[aria-current='page'] { color: var(--bg); background: var(--fg); border-color: var(--fg); }
+  .n { font-size: 0.7rem; opacity: 0.6; font-variant-numeric: tabular-nums; }
+</style>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://parvizhagverdiyev.com/sitemap-index.xml

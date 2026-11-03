@@ -1,0 +1,24 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getPosts, tagSlug } from '../../lib/posts';
+
+const posts = await getPosts();
+const counts = new Map<string, number>();
+for (const p of posts) for (const t of p.data.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+const tags = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+---
+<Base title="Topics">
+  <h1 class="h">Topics</h1>
+  {tags.length === 0 && <p class="sans muted">No topics yet.</p>}
+  <ul class="cloud sans">
+    {tags.map(([t, n]) => <li><a href={`/tags/${tagSlug(t)}/`}>{t}<span>{n}</span></a></li>)}
+  </ul>
+</Base>
+<style>
+  .h { font-size: 1.9rem; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 2rem; }
+  .muted { color: var(--muted); }
+  .cloud { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .cloud a { text-decoration: none; border: 1px solid var(--rule); border-radius: 999px; padding: 0.35rem 0.85rem; font-size: 0.88rem; display: inline-flex; gap: 0.45rem; align-items: baseline; }
+  .cloud a:hover { border-color: var(--accent); }
+  .cloud span { font-size: 0.72rem; color: var(--faint); }
+</style>

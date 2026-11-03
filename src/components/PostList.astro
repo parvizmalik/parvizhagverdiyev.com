@@ -1,0 +1,69 @@
+---
+import { TYPES } from '../site.config';
+import { formatDate, postUrl, type Post } from '../lib/posts';
+
+interface Props {
+  posts: Post[];
+  showType?: boolean;
+  groupByYear?: boolean;
+}
+const { posts, showType = true, groupByYear = true } = Astro.props;
+
+const groups = new Map<number | 'all', Post[]>();
+for (const p of posts) {
+  const key = groupByYear ? p.data.date.getUTCFullYear() : 'all';
+  if (!groups.has(key)) groups.set(key, []);
+  groups.get(key)!.push(p);
+}
+---
+{posts.length === 0 && <p class="empty sans">Nothing here yet.</p>}
+{[...groups].map(([year, items]) => (
+  <section class="group">
+    {groupByYear && <h2 class="year sans">{year}</h2>}
+    <ul class="posts">
+      {items.map((p) => (
+        <li>
+          <a href={postUrl(p)}>
+            <span class="title">{p.data.title}{p.data.draft && <em class="draft sans"> draft</em>}</span>
+            {p.data.description && <span class="desc">{p.data.description}</span>}
+            <span class="meta sans">
+              <time datetime={p.data.date.toISOString()}>{formatDate(p.data.date)}</time>
+              {showType && <><span aria-hidden="true">·</span><span>{TYPES[p.data.type].singular}</span></>}
+              {p.data.guest && <><span aria-hidden="true">·</span><span>with {p.data.guest}</span></>}
+            </span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+))}
+
+<style>
+  .group + .group { margin-top: 2.75rem; }
+  .year {
+    font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; color: var(--faint);
+    margin: 0 0 0.6rem; font-variant-numeric: tabular-nums;
+  }
+  .posts { list-style: none; margin: 0; padding: 0; }
+  .posts li + li { margin-top: 0.4rem; }
+  .posts a {
+    display: block; text-decoration: none; padding: 0.7rem 0;
+    border-radius: 6px; transition: transform 0.2s ease;
+  }
+  .title {
+    display: block; font-size: 1.28rem; line-height: 1.3; font-weight: 500;
+    letter-spacing: -0.005em;
+    text-decoration: underline; text-decoration-color: transparent;
+    text-underline-offset: 0.2em; text-decoration-thickness: 1px;
+    transition: text-decoration-color 0.2s, color 0.2s;
+  }
+  .posts a:hover .title { color: var(--accent); text-decoration-color: currentColor; }
+  .posts a:hover { color: inherit; }
+  .desc { display: block; color: var(--muted); font-size: 1.02rem; margin-top: 0.25rem; line-height: 1.5; }
+  .meta {
+    display: flex; gap: 0.45rem; flex-wrap: wrap;
+    font-size: 0.78rem; color: var(--faint); margin-top: 0.35rem;
+  }
+  .draft { font-style: normal; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); vertical-align: middle; }
+  .empty { color: var(--muted); font-size: 0.9rem; }
+</style>

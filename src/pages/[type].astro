@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+import PostList from '../components/PostList.astro';
+import TypeTabs from '../components/TypeTabs.astro';
+import { SITE, TYPES, type PostType } from '../site.config';
+import { getPosts } from '../lib/posts';
+import { typeCounts } from '../lib/counts';
+
+export function getStaticPaths() {
+  return [
+    { params: { type: 'essays' }, props: { key: 'essay' } },
+    { params: { type: 'research' }, props: { key: 'research' } },
+    { params: { type: 'interviews' }, props: { key: 'interview' } },
+  ];
+}
+
+const { key } = Astro.props as { key: PostType };
+const all = await getPosts();
+const posts = all.filter((p) => p.data.type === key);
+const label = TYPES[key].label;
+---
+<Base title={label} description={`${label} by ${SITE.name}.`}>
+  <h1 class="visually-hidden">{label}</h1>
+  <TypeTabs active={key} counts={typeCounts(all)} />
+  <PostList posts={posts} showType={false} />
+</Base>

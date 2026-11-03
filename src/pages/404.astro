@@ -1,0 +1,13 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base title="Not found">
+  <h1 class="h">Page not found</h1>
+  <p class="p">The page you're looking for doesn't exist or has moved. Try <button type="button" data-search-open class="link">searching</button> or go back to <a href="/">all writing</a>.</p>
+</Base>
+<style>
+  .h { font-size: 2rem; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 1rem; }
+  .p { color: var(--muted); }
+  .link { all: unset; cursor: pointer; text-decoration: underline; text-decoration-color: var(--faint); text-underline-offset: 0.18em; }
+  .link:hover { color: var(--accent); }
+</style>

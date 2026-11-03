@@ -1,0 +1,63 @@
+---
+import Base from '../layouts/Base.astro';
+import PostList from '../components/PostList.astro';
+import TypeTabs from '../components/TypeTabs.astro';
+import { SITE } from '../site.config';
+import { getPosts, postUrl, formatDate } from '../lib/posts';
+import { typeCounts } from '../lib/counts';
+
+const posts = await getPosts();
+const featured = posts.filter((p) => p.data.featured).slice(0, 3);
+---
+<Base>
+  <section class="intro">
+    <h1>{SITE.name}</h1>
+    <p>{SITE.intro}</p>
+  </section>
+
+  {featured.length > 0 && (
+    <section class="featured" aria-labelledby="featured-h">
+      <h2 id="featured-h" class="label sans">Featured</h2>
+      <ul>
+        {featured.map((p) => (
+          <li>
+            <a href={postUrl(p)}>
+              <span class="ft">{p.data.title}</span>
+              {p.data.description && <span class="fd">{p.data.description}</span>}
+              <span class="fm sans">{formatDate(p.data.date)}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <TypeTabs active="all" counts={typeCounts(posts)} />
+  <PostList posts={posts} />
+</Base>
+
+<style>
+  .intro { margin-bottom: 3.5rem; }
+  h1 { font-size: 2.1rem; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; margin: 0 0 0.9rem; }
+  .intro p { margin: 0; color: var(--muted); font-size: 1.2rem; max-width: 34rem; }
+  .label {
+    font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 0.9rem;
+  }
+  .featured { margin-bottom: 3.5rem; }
+  .featured ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.75rem; }
+  .featured a {
+    display: block; text-decoration: none; padding: 1.1rem 1.25rem;
+    border: 1px solid var(--rule); border-radius: 8px;
+    transition: border-color 0.2s, transform 0.2s, background 0.2s;
+  }
+  .featured a:hover { border-color: var(--accent); color: inherit; transform: translateY(-1px); }
+  .featured a:hover .ft { color: var(--accent); }
+  .ft { display: block; font-size: 1.3rem; font-weight: 500; line-height: 1.3; transition: color 0.2s; }
+  .fd { display: block; color: var(--muted); margin-top: 0.3rem; font-size: 1.02rem; line-height: 1.5; }
+  .fm { display: block; color: var(--faint); font-size: 0.78rem; margin-top: 0.5rem; }
+  @media (max-width: 520px) {
+    h1 { font-size: 1.75rem; }
+    .intro p { font-size: 1.1rem; }
+  }
+</style>

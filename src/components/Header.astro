@@ -1,0 +1,71 @@
+---
+import { SITE } from '../site.config';
+const path = Astro.url.pathname;
+const nav = [
+  { href: '/', label: 'Writing' },
+  { href: '/research/', label: 'Research' },
+  { href: '/interviews/', label: 'Interviews' },
+  { href: '/about/', label: 'About' },
+];
+const isActive = (href: string) =>
+  href === '/' ? path === '/' || path.startsWith('/essays') : path.startsWith(href);
+---
+<header class="site-header wrap">
+  <a href="/" class="name">{SITE.name}</a>
+  <nav aria-label="Main">
+    {nav.map((n) => (
+      <a href={n.href} aria-current={isActive(n.href) ? 'page' : undefined}>{n.label}</a>
+    ))}
+    <button class="icon" type="button" data-search-open aria-label="Search (press /)" title="Search  /">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    </button>
+    <button class="icon" type="button" id="theme-toggle" aria-label="Toggle dark mode" title="Toggle theme">
+      <svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      <svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    display: flex; align-items: baseline; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem 1.5rem;
+    padding-top: 2.5rem; padding-bottom: 3.5rem;
+    font-family: var(--sans); font-size: 0.9rem;
+  }
+  .name { font-weight: 600; text-decoration: none; letter-spacing: -0.01em; font-size: 0.98rem; }
+  nav { display: flex; align-items: center; gap: 1.15rem; flex-wrap: wrap; }
+  nav a { text-decoration: none; color: var(--muted); }
+  nav a:hover, nav a[aria-current='page'] { color: var(--fg); }
+  nav a[aria-current='page'] { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 0.4em; text-decoration-thickness: 1.5px; }
+  .icon {
+    all: unset; cursor: pointer; color: var(--muted); display: inline-flex;
+    padding: 0.2rem; border-radius: 4px; align-self: center;
+  }
+  .icon:hover { color: var(--fg); }
+  .icon:focus-visible { outline: 2px solid var(--accent); }
+  .moon { display: none; }
+  :global(:root[data-theme='dark']) .sun { display: none; }
+  :global(:root[data-theme='dark']) .moon { display: block; }
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme='light'])) .sun { display: none; }
+    :global(:root:not([data-theme='light'])) .moon { display: block; }
+  }
+  @media (max-width: 520px) {
+    .site-header { padding-top: 1.5rem; padding-bottom: 2.5rem; }
+    nav { gap: 0.9rem; }
+  }
+</style>
+
+<script>
+  const btn = document.getElementById('theme-toggle');
+  btn?.addEventListener('click', () => {
+    const root = document.documentElement;
+    const isDark =
+      root.dataset.theme === 'dark' ||
+      (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+    const next = isDark ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('theme', next); } catch {}
+  });
+</script>
