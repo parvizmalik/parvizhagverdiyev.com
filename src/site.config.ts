@@ -11,9 +11,8 @@ export const SITE = {
     'Telecom dev from Baku. I dig into how stuff really works and write it down in plain words.',
   email: '', // e.g. 'hello@parvizhagverdiyev.com' — leave empty to hide
   socials: [
-    // { label: 'X', href: 'https://x.com/yourhandle' },
-    // { label: 'LinkedIn', href: 'https://www.linkedin.com/in/yourhandle' },
-    // { label: 'GitHub', href: 'https://github.com/yourhandle' },
+    { label: 'LinkedIn', href: 'https://www.linkedin.com/in/parviz-hagverdiyev-0b69a0114/' },
+    { label: 'X', href: 'https://x.com/mrhagverdiyev' },
   ] as { label: string; href: string }[],
 };
 

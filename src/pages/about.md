@@ -15,3 +15,9 @@ Same energy at the gym. I lift, I hit the heavy bag, I run. It’s my reset butt
 I think in three languages: Azerbaijani, Russian, English. Ideas land in one and come out in another.
 
 This blog is where I write down what I learn in plain words. If I can’t say it simply, I’m not done digging yet.
+
+## Elsewhere
+
+- [LinkedIn](https://www.linkedin.com/in/parviz-hagverdiyev-0b69a0114/)
+- [X](https://x.com/mrhagverdiyev)
+- [RSS](/rss.xml): get new posts in any feed reader

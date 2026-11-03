@@ -65,16 +65,16 @@ npm run dev        # opens http://localhost:4321 and reloads as you edit
 
 ## Publish it
 
-The site is hosted on **Cloudflare Pages** and the domain is registered with **Cloudflare**.
+The site runs on **Cloudflare Workers** (static assets), and the domain is registered with **Cloudflare**.
 Cloudflare is connected to the GitHub repository, so every change pushed to the `main` branch
 republishes the site automatically within a minute or two.
 
-Cloudflare Pages build settings:
+Cloudflare build settings (Worker name `parvizhagverdiyev-com`, matching `wrangler.jsonc`):
 
 | Setting | Value |
 | --- | --- |
-| Framework preset | Astro |
 | Build command | `npm run build` |
-| Build output directory | `dist` |
+| Deploy command | `npx wrangler deploy` |
+| Path (root directory) | `/` |
 
 If you end up using a different domain, change it in `astro.config.mjs` (`site`), `src/site.config.ts` (`url`) and `public/robots.txt`.
