@@ -1,0 +1,23 @@
+---
+import { SITE } from '../site.config';
+import Icon from './Icon.astro';
+---
+<ul class="pills">
+  {SITE.socials.map((s) => (
+    <li><a href={s.href} rel="me noopener" target="_blank"><Icon name={s.label} size={16} /><span>{s.label}</span></a></li>
+  ))}
+  {SITE.email && (
+    <li><a href={`mailto:${SITE.email}`}><Icon name="email" size={16} /><span>Email</span></a></li>
+  )}
+  <li><a href="/subscribe/"><Icon name="rss" size={16} /><span>RSS</span></a></li>
+</ul>
+
+<style>
+  .pills { list-style: none; padding: 0; margin: 1rem 0 0; display: flex; flex-wrap: wrap; gap: 0.5rem; font-family: var(--sans); font-size: 0.85rem; }
+  .pills a {
+    display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;
+    padding: 0.45rem 0.9rem; border: 1px solid var(--rule); border-radius: 999px; color: var(--fg);
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .pills a:hover { border-color: var(--accent); color: var(--accent); }
+</style>

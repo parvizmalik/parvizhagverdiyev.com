@@ -1,24 +1,38 @@
 ---
 import { SITE } from '../site.config';
+import Icon from './Icon.astro';
 const year = new Date().getFullYear();
 ---
 <footer class="wrap site-footer">
-  <div>© {year} {SITE.name}</div>
-  <div class="links">
-    {SITE.email && <a href={`mailto:${SITE.email}`}>Email</a>}
-    {SITE.socials.map((s) => <a href={s.href} rel="me noopener" target="_blank">{s.label}</a>)}
+  <div class="left">
+    <span>© {year} {SITE.name}</span>
     <a href="/tags/">Topics</a>
-    <a href="/rss.xml">RSS</a>
   </div>
+  <ul class="social" aria-label="Elsewhere">
+    {SITE.email && (
+      <li><a href={`mailto:${SITE.email}`} aria-label="Email" title="Email"><Icon name="email" /></a></li>
+    )}
+    {SITE.socials.map((s) => (
+      <li><a href={s.href} rel="me noopener" target="_blank" aria-label={s.label} title={s.label}><Icon name={s.label} /></a></li>
+    ))}
+    <li><a href="/subscribe/" aria-label="Subscribe via RSS" title="Subscribe (RSS)"><Icon name="rss" /></a></li>
+  </ul>
 </footer>
 
 <style>
   .site-footer {
-    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;
     margin-top: 6rem; padding-top: 1.5rem; padding-bottom: 3rem;
     border-top: 1px solid var(--rule);
     font-family: var(--sans); font-size: 0.8rem; color: var(--muted);
   }
-  .links { display: flex; gap: 1.1rem; }
-  .links a { text-decoration: none; }
+  .left { display: flex; gap: 1.1rem; flex-wrap: wrap; }
+  .left a { text-decoration: none; }
+  .social { list-style: none; margin: 0; padding: 0; display: flex; gap: 0.35rem; }
+  .social a {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 2.1rem; height: 2.1rem; border-radius: 8px; color: var(--muted);
+    transition: color 0.15s, background 0.15s;
+  }
+  .social a:hover { color: var(--fg); background: var(--code-bg); }
 </style>

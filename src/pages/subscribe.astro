@@ -1,0 +1,82 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { SITE } from '../site.config';
+
+const feed = new URL('/rss.xml', Astro.site).toString();
+const enc = encodeURIComponent(feed);
+const readers = [
+  { name: 'Feedly', href: `https://feedly.com/i/subscription/feed/${enc}`, note: 'web, iPhone, Android' },
+  { name: 'Inoreader', href: `https://www.inoreader.com/?add_feed=${enc}`, note: 'web, iPhone, Android' },
+  { name: 'NetNewsWire', href: 'https://netnewswire.com/', note: 'free, Mac and iPhone' },
+];
+---
+<Base title="Subscribe" description={`Get new posts from ${SITE.name} as soon as they're published.`}>
+  <h1 class="h">Subscribe</h1>
+  <div class="prose">
+    <p>Get every new post automatically, without social media algorithms or email. This site has an <strong>RSS feed</strong>: a link that feed-reader apps check for you, so new posts show up there as soon as they're published.</p>
+  </div>
+
+  <section class="card sans">
+    <h2 class="label">One click</h2>
+    <ul class="readers">
+      {readers.map((r) => (
+        <li><a href={r.href} target="_blank" rel="noopener"><strong>{r.name}</strong><span>{r.note}</span></a></li>
+      ))}
+    </ul>
+
+    <h2 class="label">Or paste this link into any feed reader</h2>
+    <div class="copy">
+      <Icon name="rss" size={16} />
+      <input type="text" readonly value={feed} aria-label="Feed address" onclick="this.select()" />
+      <button type="button" id="copy-feed" data-url={feed}>Copy</button>
+    </div>
+  </section>
+
+  <div class="prose more">
+    <p>You can also follow along on {SITE.socials.map((s, i) => (
+      <>{i > 0 && (i === SITE.socials.length - 1 ? ' or ' : ', ')}<a href={s.href} target="_blank" rel="noopener">{s.label}</a></>
+    ))}.</p>
+  </div>
+</Base>
+
+<style>
+  .h { font-size: 2.1rem; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 2rem; line-height: 1.15; }
+  .card { margin: 2.25rem 0; padding: 1.4rem 1.4rem 1.5rem; border: 1px solid var(--rule); border-radius: 10px; }
+  .label {
+    font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--faint); margin: 0 0 0.8rem;
+  }
+  .label + * { margin-bottom: 1.6rem; }
+  .readers { list-style: none; padding: 0; margin-top: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.6rem; }
+  .readers a {
+    display: block; text-decoration: none; padding: 0.75rem 0.9rem; border: 1px solid var(--rule); border-radius: 8px;
+    transition: border-color 0.15s;
+  }
+  .readers a:hover { border-color: var(--accent); }
+  .readers a:hover strong { color: var(--accent); }
+  .readers strong { display: block; font-size: 0.95rem; font-weight: 600; }
+  .readers span { display: block; font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
+  .copy {
+    display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0 !important;
+    border: 1px solid var(--rule); border-radius: 8px; padding: 0.35rem 0.35rem 0.35rem 0.8rem; color: var(--accent);
+  }
+  .copy input {
+    flex: 1; min-width: 0; border: 0; background: transparent; color: var(--fg);
+    font: inherit; font-size: 0.85rem; outline: none;
+  }
+  .copy button {
+    font: inherit; font-size: 0.8rem; cursor: pointer; color: var(--bg); background: var(--fg);
+    border: 0; border-radius: 6px; padding: 0.45rem 0.9rem;
+  }
+  .more { color: var(--muted); }
+</style>
+
+<script>
+  const btn = document.getElementById('copy-feed') as HTMLButtonElement | null;
+  btn?.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(btn.dataset.url!); btn.textContent = 'Copied'; }
+    catch { btn.textContent = 'Press Ctrl+C'; }
+    setTimeout(() => (btn.textContent = 'Copy'), 1800);
+  });
+</script>
