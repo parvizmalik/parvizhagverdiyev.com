@@ -13,6 +13,7 @@ export const SITE = {
   socials: [
     { label: 'LinkedIn', href: 'https://www.linkedin.com/in/parviz-hagverdiyev-0b69a0114/' },
     { label: 'X', href: 'https://x.com/mrhagverdiyev' },
+    { label: 'GitHub', href: 'https://github.com/parvizmalik' },
   ] as { label: string; href: string }[],
 };
 

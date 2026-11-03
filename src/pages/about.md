@@ -16,4 +16,5 @@ This blog is where I break it all down in plain words. If I can’t say it simpl
 
 - [LinkedIn](https://www.linkedin.com/in/parviz-hagverdiyev-0b69a0114/)
 - [X](https://x.com/mrhagverdiyev)
+- [GitHub](https://github.com/parvizmalik)
 - [RSS](/rss.xml): get new posts in any feed reader
