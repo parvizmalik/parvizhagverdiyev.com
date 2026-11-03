@@ -131,8 +131,48 @@ a:hover { color: var(--accent); text-decoration-color: currentColor; }
 .prose figure { margin: 2em 0; }
 .prose figcaption {
   font-family: var(--sans); font-size: 0.8rem; color: var(--muted);
-  text-align: center; margin-top: -1.2em;
+  text-align: center; margin-top: -1.2em; line-height: 1.5;
 }
+
+/* Diagrams (inline SVG inside <figure class="diagram">) */
+.prose figure.diagram { margin: 2.25em 0; }
+.prose figure.diagram .canvas {
+  border: 1px solid var(--rule); border-radius: 10px; padding: 1rem 0.75rem;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+}
+.prose figure.diagram svg { display: block; width: 100%; min-width: 440px; height: auto; margin: 0 auto; }
+.prose figure.diagram figcaption { text-align: left; margin-top: 0.7em; }
+.prose figure.diagram figcaption b { color: var(--fg); font-weight: 600; }
+.diagram text { font-family: var(--sans); fill: var(--fg); font-size: 14px; }
+.diagram text.m { fill: var(--muted); font-size: 12.5px; }
+.diagram text.b { font-weight: 600; }
+.diagram text.ac { fill: var(--accent); }
+.diagram text.lbl { fill: var(--faint); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; }
+.diagram .box { fill: var(--bg); stroke: var(--fg); stroke-width: 1.25; }
+.diagram .box.soft { stroke: var(--faint); }
+.diagram .box.dash { stroke-dasharray: 5 4; stroke: var(--muted); }
+.diagram .box.ac { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.5; }
+.diagram .zone { fill: var(--accent-soft); stroke: var(--accent); stroke-dasharray: 6 5; stroke-width: 1.25; opacity: 0.85; }
+.diagram .ln { stroke: var(--muted); stroke-width: 1.4; fill: none; }
+.diagram .ln.dash { stroke-dasharray: 4 4; }
+.diagram .ln.fg { stroke: var(--fg); stroke-width: 2; }
+.diagram .ln.ac { stroke: var(--accent); stroke-width: 2.5; }
+.diagram .head { fill: var(--muted); }
+.diagram .head.ac { fill: var(--accent); }
+.diagram .dot { fill: var(--fg); }
+.diagram .star { fill: var(--faint); }
+
+@media (max-width: 560px) {
+  .prose figure.diagram .canvas {
+    margin: 0 calc(-1 * var(--gutter)); padding: 0.75rem 0.4rem;
+    border-radius: 0; border-left: 0; border-right: 0;
+  }
+  .prose figure.diagram svg { min-width: 0; }
+}
+
+/* Math */
+.prose .katex-display { overflow-x: auto; overflow-y: hidden; padding: 0.4em 0; margin: 1.6em 0; }
+.prose .katex { font-size: 1.08em; }
 .prose code {
   font-family: var(--mono); font-size: 0.85em;
   background: var(--code-bg); padding: 0.12em 0.35em; border-radius: 4px;
@@ -147,7 +187,7 @@ a:hover { color: var(--accent); text-decoration-color: currentColor; }
   width: 100%; border-collapse: collapse; font-family: var(--sans); font-size: 0.88rem;
   display: block; overflow-x: auto;
 }
-.prose th, .prose td { text-align: left; padding: 0.5em 0.75em; border-bottom: 1px solid var(--rule); }
+.prose th, .prose td { text-align: left; vertical-align: top; padding: 0.55em 0.75em; border-bottom: 1px solid var(--rule); }
 .prose th { font-weight: 600; }
 
 /* Shiki dual theme */

@@ -5,10 +5,10 @@ export const SITE = {
   name: 'Parviz Hagverdiyev',
   url: 'https://parvizhagverdiyev.com',
   description:
-    'Research, interviews and essays by Parviz Hagverdiyev.',
+    'Telecom dev from Baku. I dig into how stuff really works and write it down in plain words.',
   // One or two sentences shown on the home page under your name.
   intro:
-    'I write about the questions I am working on. This is where I publish my research, interviews and essays.',
+    'Telecom dev from Baku. I dig into how stuff really works and write it down in plain words.',
   email: '', // e.g. 'hello@parvizhagverdiyev.com' — leave empty to hide
   socials: [
     // { label: 'X', href: 'https://x.com/yourhandle' },

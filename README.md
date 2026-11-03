@@ -46,7 +46,7 @@ Your text here. **Bold**, *italic*, [links](https://…), footnotes[^1]…
 
 Put images in `public/images/` and reference them as `![Alt text](/images/photo.jpg)`.
 
-The three files whose names start with `sample-`, plus `welcome.md`, are examples. Delete them once you've written your own posts.
+Diagrams can be written as inline SVG inside a `<figure class="diagram">` block (see `llms-cant-jump.md`), and math as `$$ ... $$` (LaTeX).
 
 ## Edit your name, bio and links
 
