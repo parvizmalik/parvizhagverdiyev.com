@@ -65,24 +65,16 @@ npm run dev        # opens http://localhost:4321 and reloads as you edit
 
 ## Publish it
 
-`npm run build` writes the finished site to `dist/`. Any static host can serve that folder.
+The site is hosted on **Cloudflare Pages** and the domain is registered with **Cloudflare**.
+Cloudflare is connected to the GitHub repository, so every change pushed to the `main` branch
+republishes the site automatically within a minute or two.
 
-### Option A: Netlify or Vercel (easiest)
+Cloudflare Pages build settings:
 
-1. Push this folder to a GitHub repository.
-2. On [netlify.com](https://netlify.com) or [vercel.com](https://vercel.com), choose **Import from GitHub** and pick the repository. They detect Astro automatically: the build command is `npm run build` and the output folder is `dist`.
-3. Under **Domains**, add `parvizhagverdiyev.com` and follow the DNS instructions your domain registrar needs.
+| Setting | Value |
+| --- | --- |
+| Framework preset | Astro |
+| Build command | `npm run build` |
+| Build output directory | `dist` |
 
-Each push to GitHub then republishes the site within about a minute.
-
-### Option B: GitHub Pages (free)
-
-1. Push this folder to a GitHub repository on the `main` branch.
-2. In the repository, go to **Settings → Pages → Source** and choose **GitHub Actions**. The workflow in `.github/workflows/deploy.yml` builds and publishes the site.
-3. Under **Settings → Pages → Custom domain**, enter `parvizhagverdiyev.com`. (The `public/CNAME` file is already set.)
-4. At your domain registrar, add these DNS records:
-   - `A` records for `@` pointing to `185.199.108.153`, `185.199.109.153`, `185.199.110.153` and `185.199.111.153`
-   - a `CNAME` record for `www` pointing to `<your-github-username>.github.io`
-5. Once the domain is verified, tick **Enforce HTTPS**.
-
-If you end up using a different domain, change it in three places: `astro.config.mjs` (`site`), `src/site.config.ts` (`url`), and `public/CNAME`.
+If you end up using a different domain, change it in `astro.config.mjs` (`site`), `src/site.config.ts` (`url`) and `public/robots.txt`.
