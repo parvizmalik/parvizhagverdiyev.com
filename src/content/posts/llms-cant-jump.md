@@ -3,6 +3,7 @@ title: "LLMs Can't Jump: The One Move AI Still Can't Pull Off"
 description: "Today's AI can do the math of a scientific revolution, but it can't have the idea that starts one. A plain-words breakdown of the ICML 2026 position paper."
 date: 2026-11-04
 type: research
+pdf: "https://openreview.net/attachment?id=klU4737opt&name=originally_submitted_PDF"
 tags: [ai, llms, physics, paper-breakdown]
 ---
 
@@ -10,45 +11,45 @@ tags: [ai, llms, physics, paper-breakdown]
 
 Today's AI can do the math of a scientific revolution, but it can't have the idea that starts one. That's the whole point of the paper, and this post unpacks why.
 
-- Einstein described discovery as a loop: start from real-world experience, **jump** to new base rules, then use logic to see what follows.
-- AI is a beast at two of the three thinking moves: **induction** (finding patterns) and **deduction** (proving things from rules).
+- Einstein described discovery as a loop: start from real-world experience, jump to new base rules, then use logic to see what follows.
+- AI is a beast at two of the three thinking moves: induction (finding patterns) and deduction (proving things from rules).
 - It's missing the third move: **abduction**. That's the jump that invents brand-new rules when there's almost no data to learn from.
 - The paper uses Einstein's General Relativity as a test case. Verdict: an LLM could plausibly do Einstein's 1915 math. It could not have had his 1907 idea.
 - The proposed fix: give AI a physical world it can poke and play with (interactive world models), not just more text.
 
-The paper: [Position: LLMs can't jump](https://proceedings.mlr.press/v306/zahavy26a.html), Tom Zahavy, Google DeepMind, ICML 2026.
+The paper: [Position: LLMs can't jump](https://proceedings.mlr.press/v306/zahavy26a.html), Tom Zahavy, Google DeepMind, ICML 2026. [Read the full paper (PDF)](https://openreview.net/attachment?id=klU4737opt&name=originally_submitted_PDF).
 
 ## Quick thought experiment: send GPT back to 1907
 
 Picture this. We take the best LLM on the planet and drop it in the year 1907. We feed it every physics book, every paper, every letter written so far. Then we ask: "Yo, invent General Relativity."
 
-Does it cook? The paper says no. Not because the model is dumb. It's actually elite at most of the work. It's missing **one specific move**, and that move is the one that matters most.
+Does it cook? The paper says no. Not because the model is dumb. It's actually elite at most of the work. It's missing one specific move, and that move is the one that matters most.
 
 Plot twist: the author is not some random AI hater. Tom Zahavy is a researcher at Google DeepMind, and his name is on the AlphaProof paper, the system that reached silver-medal level at the International Math Olympiad. So this is a builder telling us exactly where the wall is. That's why it's worth reading.
 
-I'm not going to cover every detail of the paper. I'm zooming in on one idea only: **the jump**. What it is, why AI can't do it yet, and what might fix it. Grab a coffee, this one goes deep.
+I'm not going to cover every detail of the paper. I'm zooming in on one idea only: the jump. What it is, why AI can't do it yet, and what might fix it. Grab a coffee, this one goes deep.
 
 ## Einstein's napkin: the E → J → A loop
 
-In 1952 Einstein wrote a letter to his old friend Maurice Solovine. In it he drew a tiny sketch of how new science gets made. Think of it as the **system design diagram of discovery**. The whole paper is built on top of it.
+In 1952 Einstein wrote a letter to his old friend Maurice Solovine. In it he drew a tiny sketch of how new science gets made. Think of it as the system design diagram of discovery. The whole paper is built on top of it.
 
 <figure class="diagram"><div class="canvas"><svg viewBox="0 0 520 290" role="img" aria-labelledby="f1-t"><title id="f1-t">Einstein's discovery loop</title><defs><marker id="f1-h" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" class="head"/></marker><marker id="f1-ha" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z" class="head ac"/></marker></defs><path d="M30 250 H500" class="ln fg"/><text x="30" y="276" text-anchor="start" class="b">E · sense experience</text><text x="196" y="276" text-anchor="start" class="m">(the real world)</text><rect x="150" y="34" width="120" height="40" rx="7" class="box "/><text x="210.0" y="59.0" text-anchor="middle" class="b">A · axioms</text><text x="282" y="58" text-anchor="start" class="m">logic flows down</text><rect x="250" y="135" width="70" height="34" rx="7" class="box soft"/><text x="285.0" y="157.0" text-anchor="middle" class="">S</text><path d="M210 74 L285 133" class="ln " marker-end="url(#f1-h)"/><path d="M285 169 L285 246" class="ln dash" marker-end="url(#f1-h)"/><rect x="340" y="135" width="70" height="34" rx="7" class="box soft"/><text x="375.0" y="157.0" text-anchor="middle" class="">S′</text><path d="M210 74 L375 133" class="ln " marker-end="url(#f1-h)"/><path d="M375 169 L375 246" class="ln dash" marker-end="url(#f1-h)"/><rect x="430" y="135" width="70" height="34" rx="7" class="box soft"/><text x="465.0" y="157.0" text-anchor="middle" class="">S″</text><path d="M210 74 L465 133" class="ln " marker-end="url(#f1-h)"/><path d="M465 169 L465 246" class="ln dash" marker-end="url(#f1-h)"/><text x="240" y="157" text-anchor="end" class="m">statements</text><text x="292" y="214" text-anchor="start" class="m">test</text><path d="M62 248 C 48 170, 80 95, 146 58" class="ln ac" marker-end="url(#f1-ha)"/><text x="84" y="198" text-anchor="start" class="ac b">J · the jump</text><text x="84" y="215" text-anchor="start" class="m">no logical path</text></svg></div><figcaption><b>Einstein’s discovery loop.</b> Logic flows down from A and gets checked against E. Only the colored arrow, the jump, has no logic behind it.</figcaption></figure>
 
 Here are the parts:
 
-- **E = Sense experience.** The real world. What you see, feel and measure. The ground floor.
-- **J = the Jump.** A leap from experience up to brand-new base ideas. No step-by-step logic gets you there.
-- **A = Axioms.** The base rules of a theory. The config file that everything else loads from.
-- **S = Statements.** What you can derive from the axioms with pure logic: theorems and predictions.
-- **Back to E.** You test the predictions against the real world. Match? The theory lives. No match? Back to the drawing board.
+- *E = Sense experience.* The real world. What you see, feel and measure. The ground floor.
+- *J = the Jump.* A leap from experience up to brand-new base ideas. No step-by-step logic gets you there.
+- *A = Axioms.* The base rules of a theory. The config file that everything else loads from.
+- *S = Statements.* What you can derive from the axioms with pure logic: theorems and predictions.
+- *Back to E.* You test the predictions against the real world. Match? The theory lives. No match? Back to the drawing board.
 
 The key detail is the J arrow. Einstein said there is **no logical road** from E up to A. And it makes sense: axioms are where logic *starts*. Logic can't produce its own starting point. You have to jump.
 
 Dev translation:
 
-- **S → E** is running your test suite.
-- **A → S** is the code executing.
-- **E → A** is writing the spec for a system nobody has ever built, with no requirements doc. Nobody hands you that. You have to *see* it.
+- *S → E* is running your test suite.
+- *A → S* is the code executing.
+- *E → A* is writing the spec for a system nobody has ever built, with no requirements doc. Nobody hands you that. You have to *see* it.
 
 Hold on to this picture. Every section below is about one arrow in it.
 
@@ -56,9 +57,9 @@ Hold on to this picture. Every section below is about one arrow in it.
 
 There are exactly three thinking moves, and AI has only two of them. The paper borrows this split from the philosopher Charles Peirce, and it maps onto code almost perfectly. Every piece of reasoning juggles three things:
 
-- **Rule** = the function definition
-- **Case** = the input
-- **Result** = the return value
+- *Rule* = the function definition
+- *Case* = the input
+- *Result* = the return value
 
 ```python
 def api_status(db_is_down):   # Rule: if the DB is down, the API returns 500
@@ -72,22 +73,22 @@ Change which two pieces you have and which one you need, and you get three total
 
 | Move | You have | You find | Dev version | Can it be wrong? | AI in 2026 |
 | --- | --- | --- | --- | --- | --- |
-| **Deduction** | Rule + Case | Result | Run the function. DB is down, so the API returns 500. | No, if the rule is right | Crushing it (AlphaProof, Lean, Olympiad gold) |
-| **Induction** | Case + Result | Rule | You saw "DB down + 500" a thousand times, so you write the rule. This is ML training. | Yes, patterns can lie | Mastered. This is literally what an LLM is |
-| **Abduction** | Rule + Result | Case, or a brand-new Rule | Prod throws weird errors at 3 a.m. You guess a cause. | Yes, it's a bet | Missing. **This is the jump** |
+| Deduction | Rule + Case | Result | Run the function. DB is down, so the API returns 500. | No, if the rule is right | Crushing it (AlphaProof, Lean, Olympiad gold) |
+| Induction | Case + Result | Rule | You saw "DB down + 500" a thousand times, so you write the rule. This is ML training. | Yes, patterns can lie | Mastered. This is literally what an LLM is |
+| Abduction | Rule + Result | Case, or a brand-new Rule | Prod throws weird errors at 3 a.m. You guess a cause. | Yes, it's a bet | Missing. **This is the jump** |
 
 Quick vibe check on each:
 
-- **Deduction** is the only move that *guarantees* truth. If the rule and the input are right, the output is right. Zero creativity, 100% safe.
-- **Induction** builds rules from piles of examples. Super powerful, but it needs data, lots of it. No data, no rule.
-- **Abduction** invents an explanation for something surprising. It's a creative leap. It can be wrong. But it's the only move that adds a truly *new* idea to the system.
+- *Deduction* is the only move that *guarantees* truth. If the rule and the input are right, the output is right. Zero creativity, 100% safe.
+- *Induction* builds rules from piles of examples. Super powerful, but it needs data, lots of it. No data, no rule.
+- *Abduction* invents an explanation for something surprising. It's a creative leap. It can be wrong. But it's the only move that adds a truly *new* idea to the system.
 
 ### Two flavors of abduction (this matters a lot)
 
 Not all guessing is equal. There are two levels:
 
-1. **Picking from the menu.** You see the symptoms and choose the most likely *known* cause. "500 errors again? It's the DB, bro." LLMs are lowkey decent at this, because the menu is in their training data.
-2. **Cooking a dish that isn't on any menu.** The right cause has never been written down by anyone. You have to invent it from scratch. That's Einstein's move. And that's the one the paper says LLMs can't do.
+1. *Picking from the menu.* You see the symptoms and choose the most likely *known* cause. "500 errors again? It's the DB, bro." LLMs are lowkey decent at this, because the menu is in their training data.
+2. *Cooking a dish that isn't on any menu.* The right cause has never been written down by anyone. You have to invent it from scratch. That's Einstein's move. And that's the one the paper says LLMs can't do.
 
 So when someone says "but ChatGPT debugged my code by guessing the cause," that's flavor 1. The paper is talking about flavor 2.
 
@@ -103,8 +104,8 @@ Now look at Newton's report card in 1907:
 
 - Newton's gravity worked insanely well. Planets, tides, cannonballs, all good.
 - The fact that every object falls at the same rate (inertial mass = gravitational mass) was checked by Newton to about 1 part in 1,000. Eötvös later pushed it to about 1 part in a billion.
-- There was just **one** known bug: Mercury's orbit slowly drifts more than Newton predicts.
-- And even that bug had a patch. Scientists guessed a hidden planet near the Sun, nicknamed **Vulcan**, was pulling on Mercury.
+- There was just one known bug: Mercury's orbit slowly drifts more than Newton predicts.
+- And even that bug had a patch. Scientists guessed a hidden planet near the Sun, nicknamed Vulcan, was pulling on Mercury.
 
 Now think like a training loop:
 
@@ -149,12 +150,12 @@ The paper is generous here. It says: give a modern LLM the exact assumptions Ein
 
 This part reads like a production incident.
 
-1. **1912–1913.** Einstein teams up with his mathematician friend Marcel Grossmann. Grossmann finds the right math object for curved spacetime (the Riemann curvature tensor). He even builds something very close to the final answer.
-2. **The test.** Any new theory must shrink back to Newton's simple gravity when gravity is weak and nothing moves fast. That's the backward-compatibility check.
-3. **The fatal error.** Grossmann concludes the candidate fails that check. It didn't. The bug was a wrong assumption about what a "static" gravity field looks like. The math was fine.
-4. **The rollback.** They throw away the correct path. Einstein ships the 1913 "Entwurf" (German for "sketch"): ten messy equations with no clean geometric meaning.
-5. **Two years of grind.** By 1915 the evidence piles up. The Entwurf can't explain Mercury. It can't handle rotation. Einstein goes back to his 1912 idea: the theory must work in *every* coordinate system.
-6. **November 1915 speedrun.** Racing the mathematician David Hilbert, Einstein sends a new paper to the Prussian Academy every week for four weeks. On November 18 his equations correctly predict Mercury's orbit. On November 25 he publishes the final field equations.
+1. *1912–1913.* Einstein teams up with his mathematician friend Marcel Grossmann. Grossmann finds the right math object for curved spacetime (the Riemann curvature tensor). He even builds something very close to the final answer.
+2. *The test.* Any new theory must shrink back to Newton's simple gravity when gravity is weak and nothing moves fast. That's the backward-compatibility check.
+3. *The fatal error.* Grossmann concludes the candidate fails that check. It didn't. The bug was a wrong assumption about what a "static" gravity field looks like. The math was fine.
+4. *The rollback.* They throw away the correct path. Einstein ships the 1913 "Entwurf" (German for "sketch"): ten messy equations with no clean geometric meaning.
+5. *Two years of grind.* By 1915 the evidence piles up. The Entwurf can't explain Mercury. It can't handle rotation. Einstein goes back to his 1912 idea: the theory must work in *every* coordinate system.
+6. *November 1915 speedrun.* Racing the mathematician David Hilbert, Einstein sends a new paper to the Prussian Academy every week for four weeks. On November 18 his equations correctly predict Mercury's orbit. On November 25 he publishes the final field equations.
 
 This is the final boss equation:
 
@@ -162,7 +163,7 @@ $$
 R_{ik} - \frac{1}{2} g_{ik} R = -\kappa T_{ik}
 $$
 
-The left side is the **shape of spacetime** (curvature). The right side is the **stuff in it** (matter and energy). Stuff bends the shape, and the shape tells stuff how to move.
+The left side is the shape of spacetime (curvature). The right side is the stuff in it (matter and energy). Stuff bends the shape, and the shape tells stuff how to move.
 
 ### Why this still doesn't count as a jump
 
@@ -174,12 +175,12 @@ But look closely at what failed in 1913. **The logic was fine. The axioms were w
 
 Two more limits:
 
-- **Spotting the bug ≠ writing the fix.** An AI could scan the literature and flag that Maxwell's constant speed of light clashes with Newton's absolute time, like a linter flagging buggy code. Choosing the *right new axioms* to resolve the clash is a different job.
-- **No target ticket.** A theorem prover chases a stated conjecture: "prove X." Einstein had no X. He was building a model of reality from scratch. Deduction only works *downstream*, after someone decides what to build.
+- *Spotting the bug ≠ writing the fix.* An AI could scan the literature and flag that Maxwell's constant speed of light clashes with Newton's absolute time, like a linter flagging buggy code. Choosing the *right new axioms* to resolve the clash is a different job.
+- *No target ticket.* A theorem prover chases a stated conjecture: "prove X." Einstein had no X. He was building a model of reality from scratch. Deduction only works *downstream*, after someone decides what to build.
 
 ## The main event: what the jump actually looks like
 
-Einstein got his key axiom not from data and not from logic, but from **imagining a feeling**. This is the heart of the paper, so let's go slow.
+Einstein got his key axiom not from data and not from logic, but from imagining a feeling. This is the heart of the paper, so let's go slow.
 
 ### 1907: the happiest thought
 
@@ -193,14 +194,14 @@ In their small bubble, while they fall, gravity is just… gone. Drop your keys 
 
 Now put that feeling in a closed box with no windows.
 
-- **Scene A: the box sits on Earth.** You let go of an apple and a hammer. Both drop to the floor with the same acceleration. Normal gravity.
-- **Scene B: the box is in deep space,** far from any planet. A rocket pulls it "up" with a steady push. You let go of the apple and the hammer. From your view, they "fall" to the floor at the same rate. Really, the floor is rushing up to meet them.
+- *Scene A: the box sits on Earth.* You let go of an apple and a hammer. Both drop to the floor with the same acceleration. Normal gravity.
+- *Scene B: the box is in deep space,* far from any planet. A rocket pulls it "up" with a steady push. You let go of the apple and the hammer. From your view, they "fall" to the floor at the same rate. Really, the floor is rushing up to meet them.
 
-From inside the box, you **cannot tell A from B**. No experiment in the box can tell them apart. Same feeling in your feet, same falling objects.
+From inside the box, you cannot tell A from B. No experiment in the box can tell them apart. Same feeling in your feet, same falling objects.
 
 ### The jump
 
-A normal person says: "Huh, funny coincidence." Einstein said: if no experiment can *ever* tell them apart, then they are **the same thing**. Gravity and acceleration are one phenomenon, not two.
+A normal person says: "Huh, funny coincidence." Einstein said: if no experiment can *ever* tell them apart, then they are the same thing. Gravity and acceleration are one phenomenon, not two.
 
 That's the **Equivalence Principle**. It's an axiom. It's not derived from anything. It's a jump.
 
@@ -212,22 +213,22 @@ And here's the wild part. The fact that everything falls at the same rate was kn
 
 The paper splits Einstein's move into two steps.
 
-**Stage 1: Simulate.** Invent a scene and run it in your head. Modern AI does something that looks similar: test-time reinforcement learning, where a system invents new versions of a problem and learns from solving them. That trick helped AI crack a famously hard chess puzzle, and it helped AlphaProof reach silver at the Math Olympiad.
+*Stage 1: Simulate.* Invent a scene and run it in your head. Modern AI does something that looks similar: test-time reinforcement learning, where a system invents new versions of a problem and learns from solving them. That trick helped AI crack a famously hard chess puzzle, and it helped AlphaProof reach silver at the Math Olympiad.
 
-But there's a huge difference. Chess and math variations stay **inside fixed rules**. Einstein's variation was not a shuffle of symbols. It was a shuffle of *physical experience*: the feeling of the floor pushing up, objects falling side by side.
+But there's a huge difference. Chess and math variations stay inside fixed rules. Einstein's variation was not a shuffle of symbols. It was a shuffle of *physical experience*: the feeling of the floor pushing up, objects falling side by side.
 
 > Chess engine: plays brilliantly inside the sandbox. Einstein: rewrote the sandbox's physics engine.
 
-**Stage 2: Abduct.** Explain what you just imagined. And here Einstein hit a wall of silence: there were no words for this yet. No existing theory described it. He said himself that words and language didn't seem to play any role in how he thought.
+*Stage 2: Abduct.* Explain what you just imagined. And here Einstein hit a wall of silence: there were no words for this yet. No existing theory described it. He said himself that words and language didn't seem to play any role in how he thought.
 
-So what did he use instead? A **physical prior**. The imagined feeling of being pushed by acceleration matched the remembered feeling of gravity. Same sensation, so same cause. The paper calls this **manipulative abduction**, a term from the philosopher Lorenzo Magnani. In plain words: thinking by doing.
+So what did he use instead? A physical prior. The imagined feeling of being pushed by acceleration matched the remembered feeling of gravity. Same sensation, so same cause. The paper calls this manipulative abduction, a term from the philosopher Lorenzo Magnani. In plain words: thinking by doing.
 
 ### What the jump paid out
 
 One axiom, tons of free predictions. If gravity *is* acceleration, then:
 
-- **Light bends** near heavy objects (confirmed by Eddington in 1919).
-- **Clocks tick slower** in strong gravity (your phone's GPS corrects for this every day).
+- *Light bends* near heavy objects (confirmed by Eddington in 1919).
+- *Clocks tick slower* in strong gravity (your phone's GPS corrects for this every day).
 
 That's the power of a good axiom. One line in the config file, and a whole new world of behavior follows.
 
@@ -237,7 +238,7 @@ An LLM can't jump because the jump starts from experience, and an LLM has never 
 
 Think about the word "fall." An LLM knows "fall" sits close to "gravity," "apple," "Newton," "accelerate." It knows millions of sentences about falling. But it never felt that stomach drop when a fast elevator starts moving down. For the model, words only point to *other words*.
 
-There's a classic name for this. Philosophers call it the **Chinese Room**: a person in a room follows a rulebook to answer Chinese messages perfectly, without understanding a single character. The scientist Stevan Harnad called the deeper issue the **symbol grounding problem**: symbols that never connect to the real things they stand for. The paper calls LLMs "high-dimensional Chinese Rooms." Fluent in the language of physics, zero contact with physics itself.
+There's a classic name for this. Philosophers call it the Chinese Room: a person in a room follows a rulebook to answer Chinese messages perfectly, without understanding a single character. The scientist Stevan Harnad called the deeper issue the symbol grounding problem: symbols that never connect to the real things they stand for. The paper calls LLMs "high-dimensional Chinese Rooms." Fluent in the language of physics, zero contact with physics itself.
 
 Einstein made the same point decades ago. In his view, concepts and logic only get real meaning through their link to sense experience. Cut that link and you're just moving symbols around.
 
@@ -249,14 +250,14 @@ Here's the cleanest way to see it. Everything an LLM trains on is text. And text
 
 So the LLM is stuck upstairs. It can run the A → S arrow all day: derive, prove, remix. But the J arrow starts *downstairs*, at E. No E, no runway. No runway, no jump.
 
-Other big names point at the same gap. Fei-Fei Li argues AI is missing **spatial intelligence**. Yann LeCun has long argued LLMs lack a real **world model**. And LLMs still fail some spatial puzzles that are trivial for toddlers.
+Other big names point at the same gap. Fei-Fei Li argues AI is missing spatial intelligence. Yann LeCun has long argued LLMs lack a real world model. And LLMs still fail some spatial puzzles that are trivial for toddlers.
 
 ### Even the fanciest AI scientists hit this wall
 
 The paper looks at the most advanced automated-discovery systems right now:
 
-- **Sakana's AI Scientist** runs the full research loop on its own. But it recombines *existing* concepts to push a metric. That's a very sophisticated Chinese Room.
-- **DeepMind's AlphaEvolve** is a beast at optimization. But it needs a score to climb, a gradient. Einstein had no score. Newton's "loss" was already near zero.
+- *Sakana's AI Scientist* runs the full research loop on its own. But it recombines *existing* concepts to push a metric. That's a very sophisticated Chinese Room.
+- *DeepMind's AlphaEvolve* is a beast at optimization. But it needs a score to climb, a gradient. Einstein had no score. Newton's "loss" was already near zero.
 
 Both are amazing inside a paradigm. Neither can leave it.
 
@@ -268,15 +269,15 @@ But not every world model counts. The paper draws a hard line between *watching*
 
 | Level | What the AI can do | Example | Enough to jump? |
 | --- | --- | --- | --- |
-| 1. **Watch** | Predict the next frame of a video | Video models like Veo | No. The apple falls because falling is the most common next frame in its training videos, not because it understands gravity |
-| 2. **Do** | Take an action and see the world react | DeepMind's Genie, a world you can control | Getting close. This is "thinking by doing" |
-| 3. **Imagine "what if"** | Change the world on purpose and run it | "What happens if I cut the elevator cable?" | Yes. This is Einstein's thought experiment |
+| 1. Watch | Predict the next frame of a video | Video models like Veo | No. The apple falls because falling is the most common next frame in its training videos, not because it understands gravity |
+| 2. Do | Take an action and see the world react | DeepMind's Genie, a world you can control | Getting close. This is "thinking by doing" |
+| 3. Imagine "what if" | Change the world on purpose and run it | "What happens if I cut the elevator cable?" | Yes. This is Einstein's thought experiment |
 
-The paper's line is sharp: to copy Einstein's elevator, an AI can't just *watch* a video of an elevator. It must be able to grab control of the simulation and cut the cable itself. And the sim must run on **consistent physics** in the model's internal space, not just pretty pixels that look right.
+The paper's line is sharp: to copy Einstein's elevator, an AI can't just *watch* a video of an elevator. It must be able to grab control of the simulation and cut the cable itself. And the sim must run on consistent physics in the model's internal space, not just pretty pixels that look right.
 
 ### The missing ingredient: strong hunches
 
-There's one more piece. Einstein's physical prior didn't just help him imagine. It helped him **filter**. Out of a million possible axioms, his gut sense of gravity told him which ones felt right.
+There's one more piece. Einstein's physical prior didn't just help him imagine. It helped him filter. Out of a million possible axioms, his gut sense of gravity told him which ones felt right.
 
 The paper notes that many revolutions were driven by strong hunches that came *before* any math. Kepler was sure, almost mystically, that the Sun sits at the center. So AI may need more than a simulator. It may need strong beliefs about how the world *should* work, and then use the simulator to test those beliefs.
 
@@ -292,12 +293,12 @@ The author is careful here. The proposal is aimed at the physical sciences, wher
 
 ## My take: where the paper might be too strong
 
-I think the paper nails the core idea, but it's a **position paper**: one big historical example and a strong argument, not an experiment. So here are four questions worth chewing on before you take it as gospel.
+I think the paper nails the core idea, but it's a position paper: one big historical example and a strong argument, not an experiment. So here are four questions worth chewing on before you take it as gospel.
 
-1. **Was there really "no data"?** The equality of the two kinds of mass was measured to about one part in a billion. That *is* data. Einstein's move was to take a "coincidence" seriously. Could a model be trained to hunt for unexplained coincidences in old facts? Maybe. Spotting the coincidence still isn't jumping, but it's the first step.
-2. **Is human creativity just fancy remixing?** Some critics say most "new" human ideas are recombinations of old ones. If that's true, the gap between remixing and jumping is a matter of degree, and scale might close it. The paper bets it's a difference in kind. Nobody has proved either side yet.
-3. **Maybe generating isn't the hard part. Picking is.** An LLM can spit out 10,000 thought experiments in a minute. The magic was knowing which *one* mattered. That taste is exactly what Einstein's physical prior gave him. So the real missing piece might be a filter, not a generator.
-4. **Maybe AI doesn't need to jump to be useful.** A [HackerNoon piece](https://hackernoon.com/llms-cant-jump-and-they-shouldnt-have-to) agrees with the limit but argues it's the wrong focus. Let models do what they're great at, like digging up the paper from a field you'd never read, and give humans more time for the jump.
+1. *Was there really "no data"?* The equality of the two kinds of mass was measured to about one part in a billion. That *is* data. Einstein's move was to take a "coincidence" seriously. Could a model be trained to hunt for unexplained coincidences in old facts? Maybe. Spotting the coincidence still isn't jumping, but it's the first step.
+2. *Is human creativity just fancy remixing?* Some critics say most "new" human ideas are recombinations of old ones. If that's true, the gap between remixing and jumping is a matter of degree, and scale might close it. The paper bets it's a difference in kind. Nobody has proved either side yet.
+3. *Maybe generating isn't the hard part. Picking is.* An LLM can spit out 10,000 thought experiments in a minute. The magic was knowing which *one* mattered. That taste is exactly what Einstein's physical prior gave him. So the real missing piece might be a filter, not a generator.
+4. *Maybe AI doesn't need to jump to be useful.* A [HackerNoon piece](https://hackernoon.com/llms-cant-jump-and-they-shouldnt-have-to) agrees with the limit but argues it's the wrong focus. Let models do what they're great at, like digging up the paper from a field you'd never read, and give humans more time for the jump.
 
 Point 4 is the practical one for us devs. Today's LLM is the best research intern ever built: it reads everything, checks everything, and derives anything you hand it. It just can't hand *you* the first axiom. Not yet, anyway.
 
@@ -307,7 +308,7 @@ LLMs can run the code of science. They can't yet write its first line.
 
 | Idea | One-line version |
 | --- | --- |
-| Discovery loop | Experience → **jump** → axioms → logic → predictions → test on experience |
+| Discovery loop | Experience → jump → axioms → logic → predictions → test on experience |
 | Induction | Learn a rule from many examples. AI: mastered |
 | Deduction | Apply a rule to get a result. AI: crushing it |
 | Abduction | Invent a new cause or rule. AI: missing. This is the jump |
@@ -320,4 +321,5 @@ LLMs can run the code of science. They can't yet write its first line.
 ## Sources
 
 - [Position: LLMs can't jump](https://proceedings.mlr.press/v306/zahavy26a.html), Tom Zahavy, Google DeepMind. Proceedings of ICML 2026 (PMLR vol. 306).
+- [Full paper (PDF)](https://openreview.net/attachment?id=klU4737opt&name=originally_submitted_PDF), on OpenReview.
 - [LLMs Can't Jump and They Shouldn't Have To](https://hackernoon.com/llms-cant-jump-and-they-shouldnt-have-to), HackerNoon.
