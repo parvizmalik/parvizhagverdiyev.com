@@ -1,9 +1,10 @@
 ---
 import { render } from 'astro:content';
 import 'katex/dist/katex.min.css';
+import '../../styles/ipost.css';
 import Base from '../../layouts/Base.astro';
 import { SITE, TYPES } from '../../site.config';
-import { getPosts, formatDate, readingTime, tagSlug, postUrl } from '../../lib/posts';
+import { getPosts, formatDate, readingTime, tagSlug, postUrl, postText, visualHtml, visualHeadings } from '../../lib/posts';
 
 export async function getStaticPaths() {
   const posts = await getPosts();
@@ -14,9 +15,11 @@ export async function getStaticPaths() {
 }
 
 const { post, newer, older } = Astro.props;
-const { Content, headings } = await render(post);
 const d = post.data;
-const minutes = readingTime(post.body);
+const visual = visualHtml(post);
+const { Content, headings: mdHeadings } = await render(post);
+const headings = visual ? visualHeadings(visual) : mdHeadings;
+const minutes = readingTime(postText(post));
 const toc = headings.filter((h) => (h.depth === 2 || h.depth === 3) && h.slug !== 'footnote-label');
 const showToc = d.toc && toc.filter((h) => h.depth === 2).length >= 3;
 const url = new URL(postUrl(post), Astro.site).toString();
@@ -28,7 +31,7 @@ const bibtex = `@misc{${SITE.name.split(' ').pop()!.toLowerCase()}${year}${post.
   url    = {${url}}
 }`;
 ---
-<Base title={d.title} description={d.description} type="article" published={d.date}>
+<Base title={d.title} description={d.description} type="article" published={d.date} bodyClass={visual ? 'visual' : undefined}>
   <div slot="top" class="progress" aria-hidden="true"><span id="progress-bar"></span></div>
 
   <article>
@@ -64,9 +67,13 @@ const bibtex = `@misc{${SITE.name.split(' ').pop()!.toLowerCase()}${year}${post.
       </nav>
     )}
 
-    <div class:list={['prose', { interview: d.type === 'interview' }]} id="content">
-      <Content />
-    </div>
+    {visual ? (
+      <div class="ipost" id="content" set:html={visual} />
+    ) : (
+      <div class:list={['prose', { interview: d.type === 'interview' }]} id="content">
+        <Content />
+      </div>
+    )}
 
     <footer class="post-foot sans">
       {d.tags.length > 0 && (

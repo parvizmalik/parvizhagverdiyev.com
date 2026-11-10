@@ -1,0 +1,572 @@
+<!-- ================= HERO ================= -->
+<div class="hero">
+  <div class="term" role="img" aria-label="Terminal output: Failed to bind listener socket to server port P. Got error 98, Address already in use.">
+    <div class="term-top">server log</div>
+<pre><code><span class="dim">$ start service</span>
+Failed to bind listener socket to &lt;server&gt;:&lt;port P&gt;
+<span class="err"><span class="typed">Got error: '98, Address already in use'</span></span><span class="caret"></span></code></pre>
+  </div>
+</div>
+
+<!-- ================= THE PUZZLE ================= -->
+<div class="puzzle">
+  <h2>Here's the puzzle</h2>
+  <ol>
+    <li>Two routers, <b>A</b> and <b>B</b>, send messages to <b>one port</b> on my server.</li>
+    <li>The service behind that port stopped. <b>Router A's</b> connection dropped. <b>Router B's</b> stayed alive.</li>
+    <li>I started the service again and got <span class="c-bad">"Address already in use."</span> I checked: <b>nothing</b> was listening on that port.</li>
+    <li>Then I restarted one process. Now the <b>same IP</b> and the <b>same port</b> served <b>both routers</b>. <span class="c-ok">No error.</span></li>
+  </ol>
+  <p class="ask">A minute ago the port was "in use". Now it happily serves two routers at once. How?</p>
+  <p class="hint">Take a guess before you scroll. The full answer is in <a href="#answer">Part 6</a>.</p>
+</div>
+
+<!-- ================= 1. SHORT VERSION ================= -->
+<section>
+  <h2 id="short"><span class="n">1</span>The short version</h2>
+  <p class="big">The port wasn't taken by some stranger. It was held by <b>my own server</b>, through Router B's connection that never got closed.</p>
+
+  <ul class="states" aria-label="What happened to Router A and Router B, in four stages">
+    <li class="state t-ok">
+      <h4>1 <span>Normal</span></h4>
+      <svg class="mini" viewBox="0 0 220 140" aria-hidden="true">
+        <line class="ln ok" x1="64" y1="30" x2="132" y2="70"/><line class="ln ok" x1="64" y1="110" x2="132" y2="70"/>
+        <rect class="nd" x="6" y="14" width="58" height="32" rx="9"/><text class="nt" x="35" y="36">A</text>
+        <rect class="nd" x="6" y="94" width="58" height="32" rx="9"/><text class="nt" x="35" y="116">B</text>
+        <rect class="srv" x="140" y="8" width="74" height="124" rx="14"/><text class="st" x="177" y="30">server</text>
+        <circle class="port on" cx="140" cy="70" r="8"/><text class="pt" x="153" y="74">port P</text>
+      </svg>
+      <ul class="kv"><li>Listening<em class="ok">yes</em></li><li>Router A<em class="ok">connected</em></li><li>Router B<em class="ok">connected</em></li></ul>
+    </li>
+    <li class="state t-orph">
+      <h4>2 <span>Service stopped</span></h4>
+      <svg class="mini" viewBox="0 0 220 140" aria-hidden="true">
+        <line class="ln gone" x1="64" y1="30" x2="132" y2="70"/><line class="ln orph" x1="64" y1="110" x2="132" y2="70"/>
+        <rect class="nd" x="6" y="14" width="58" height="32" rx="9"/><text class="nt" x="35" y="36">A</text>
+        <rect class="nd" x="6" y="94" width="58" height="32" rx="9"/><text class="nt" x="35" y="116">B</text>
+        <rect class="srv" x="140" y="8" width="74" height="124" rx="14"/><text class="st" x="177" y="30">server</text>
+        <circle class="port off" cx="140" cy="70" r="8"/><text class="pt" x="153" y="74">port P</text>
+      </svg>
+      <ul class="kv"><li>Listening<em class="off">no</em></li><li>Router A<em class="off">closed</em></li><li>Router B<em class="orph">still open</em></li></ul>
+    </li>
+    <li class="state t-bad">
+      <h4>3 <span>Start again</span></h4>
+      <svg class="mini" viewBox="0 0 220 140" aria-hidden="true">
+        <line class="ln bad" x1="64" y1="30" x2="112" y2="58"/>
+        <line class="x" x1="116" y1="52" x2="128" y2="64"/><line class="x" x1="128" y1="52" x2="116" y2="64"/>
+        <line class="ln orph" x1="64" y1="110" x2="132" y2="70"/>
+        <rect class="nd" x="6" y="14" width="58" height="32" rx="9"/><text class="nt" x="35" y="36">A</text>
+        <rect class="nd" x="6" y="94" width="58" height="32" rx="9"/><text class="nt" x="35" y="116">B</text>
+        <rect class="srv" x="140" y="8" width="74" height="124" rx="14"/><text class="st" x="177" y="30">server</text>
+        <circle class="port bad" cx="140" cy="70" r="8"/><text class="pt bad" x="153" y="74">error 98</text>
+      </svg>
+      <ul class="kv"><li>Listening<em class="bad">fails</em></li><li>Router A<em class="bad">can't get in</em></li><li>Router B<em class="orph">sending, rejected</em></li></ul>
+    </li>
+    <li class="state t-ok">
+      <h4>4 <span>Process restarted</span></h4>
+      <svg class="mini" viewBox="0 0 220 140" aria-hidden="true">
+        <line class="ln ok" x1="64" y1="30" x2="132" y2="70"/><line class="ln ok" x1="64" y1="110" x2="132" y2="70"/>
+        <rect class="nd" x="6" y="14" width="58" height="32" rx="9"/><text class="nt" x="35" y="36">A</text>
+        <rect class="nd" x="6" y="94" width="58" height="32" rx="9"/><text class="nt" x="35" y="116">B</text>
+        <rect class="srv" x="140" y="8" width="74" height="124" rx="14"/><text class="st" x="177" y="30">server</text>
+        <circle class="port on" cx="140" cy="70" r="8"/><text class="pt" x="153" y="74">port P</text>
+      </svg>
+      <ul class="kv"><li>Listening<em class="ok">yes</em></li><li>Router A<em class="ok">connected</em></li><li>Router B<em class="ok">connected</em></li></ul>
+    </li>
+  </ul>
+  <div class="legend" aria-hidden="true">
+    <span><i class="l-ok"></i>open, working</span>
+    <span><i class="l-orph"></i>leftover (orphan) connection</span>
+    <span><i class="l-bad"></i>refused</span>
+  </div>
+
+  <h3>What happened, in three lines</h3>
+  <ol class="lines">
+    <li>The service stopped. The listener closed, Router A's connection closed, but <span class="c-orph">Router B's connection was left open</span>.</li>
+    <li>That leftover connection kept its claim on the port, so every new start got <span class="c-bad">error 98</span>.</li>
+    <li>Restarting the whole process made <b>Linux</b> close everything. The port was free, and <span class="c-ok">both routers came back</span>.</li>
+  </ol>
+
+  <div class="callout pic">
+    <span class="ct">Picture a building</span>
+    The <b>entrance</b> is the port. The <b>doorkeeper</b> is the listener. The <b>visitors</b> are connections.
+    <ul>
+      <li>The doorkeeper went home. Visitor A left. <b>Visitor B stayed inside.</b></li>
+      <li>House rule: <b>a new doorkeeper can't start while a visitor let in by the old one is still inside.</b></li>
+      <li>So the new doorkeeper got turned away, again and again.</li>
+      <li>The restart <b>cleared the whole building</b>. New doorkeeper in, both visitors back.</li>
+    </ul>
+  </div>
+
+  <h3>Five words you'll see a lot</h3>
+  <div class="gloss">
+    <div><b>Port</b>A numbered entrance on a server.</div>
+    <div><b>Listener</b>The thing that opens the entrance and waits for callers.</div>
+    <div><b>Connection</b>An open line between two machines.</div>
+    <div><b>Socket</b>Linux's handle for one listener or one connection.</div>
+    <div><b>Process</b>One running program. Linux knows it by an ID number.</div>
+  </div>
+</section>
+
+<!-- ================= 2. SETUP ================= -->
+<section>
+  <h2 id="setup"><span class="n">2</span>The setup</h2>
+  <p>Here's how the pieces fit when everything works.</p>
+
+  <div class="setup" role="img" aria-label="Router A and Router B connect over SCTP to port P on the server. Inside the server, one long-running process holds the Diameter stack, the service, and other services.">
+    <div class="routers">
+      <div class="node"><b>Router A</b><small>sends messages</small></div>
+      <div class="node"><b>Router B</b><small>sends messages</small></div>
+    </div>
+    <div class="wire" aria-hidden="true">
+      <svg viewBox="0 0 100 200" preserveAspectRatio="none"><path class="w" d="M0 45 C 55 45, 55 100, 100 100"/><path class="w" d="M0 155 C 55 155, 55 100, 100 100"/></svg>
+      <span>SCTP</span>
+    </div>
+    <div class="server">
+      <div class="porttag">Port<br>P</div>
+      <div class="lbl">Server</div>
+      <div class="process">
+        <div class="pl">One long-running process (Linux ID 191338)</div>
+        <div class="layer dia"><b>Diameter stack</b>Opens the entrance, keeps the connections, passes messages on</div>
+        <div class="layer svc"><b>The service</b>Does the real work on each message</div>
+        <div class="layer oth"><b>Other services</b></div>
+      </div>
+    </div>
+  </div>
+
+  <ol class="lines">
+    <li>The <b>routers call the server</b>, not the other way round. The server only <b>listens</b> on port P.</li>
+    <li>If a connection drops, the router just <b>tries again every few seconds</b>.</li>
+    <li>Everything on the server side lives in <b>one long-running process</b>.</li>
+  </ol>
+
+  <h3>Two protocols, one on top of the other</h3>
+  <div class="stack">
+    <div class="s1"><span class="nm">Diameter</span><p><b>The messages.</b> What is said. <span>Handled by the Diameter stack.</span></p></div>
+    <div class="s2"><span class="nm">SCTP</span><p><b>The connection.</b> How the messages travel. <span>One listener, plus one connection per router.</span></p></div>
+    <div class="s3"><span class="nm">IP</span><p><b>The addresses.</b> Where things go. <span>The server, Router A, Router B.</span></p></div>
+  </div>
+
+  <h3>Service vs process: the difference that matters most</h3>
+  <div class="nest" role="img" aria-label="The server machine contains one process. The process contains the Diameter stack, the service, and another service.">
+    <span class="tg">Server (the machine)</span>
+    <div class="lv2">
+      <span class="tg">Process: one running program, Linux ID 191338</span>
+      <div class="row">
+        <div>Diameter stack</div>
+        <div class="ours">The service (ours)</div>
+        <div>Another service</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Process</th><th>Service</th></tr></thead>
+    <tbody>
+      <tr><td><b>What it is</b></td><td>One running program</td><td>One job that runs <b>inside</b> the process</td></tr>
+      <tr><td><b>Here</b></td><td>The server's main program, running for days</td><td>Receives router messages, turns them into output files</td></tr>
+      <tr><td><b>Does Linux see it?</b></td><td class="c-ok">Yes, by its ID number</td><td class="c-bad">No. Only the platform knows it</td></tr>
+      <tr><td><b>Owns the connections?</b></td><td class="c-ok">Yes, in Linux's records</td><td>It only <b>uses</b> them</td></tr>
+      <tr><td><b>When it stops</b></td><td><b>Linux</b> closes all its connections</td><td>Only the platform's own code can close them</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="callout key"><p>Linux cleans up after processes, not after services.</p></div>
+  <p>When a service stops, closing its connections is the platform's job. If the platform forgets one, Linux won't step in, because the process is still running and still "owns" that connection. Think of the process as a <b>shopping mall</b> and the service as <b>one shop</b>: close the shop, and the mall's front desk keeps working.</p>
+
+  <details class="tech"><summary>For the technically curious</summary><div class="tb">
+    <ul>
+      <li><b>Diameter</b> (RFC 6733) is a signaling protocol used in telecom networks, for example to send usage records between systems.</li>
+      <li><b>SCTP</b> is a transport protocol like TCP. It sends small <b>heartbeats</b> to check the other side is alive. Diameter adds its own keep-alive, called <b>watchdog</b> messages.</li>
+      <li><b>Multi-homing:</b> each router reaches the server over <b>two network paths</b>. If one fails, the same connection moves to the other.</li>
+      <li>On Linux, the listener and each connection are <b>separate sockets</b>. Remember this one. It's the key to Part 6.</li>
+    </ul>
+  </div></details>
+</section>
+
+<!-- ================= 3. PROBLEM ================= -->
+<section>
+  <h2 id="problem"><span class="n">3</span>The problem</h2>
+  <p>The service was found stopped. Starting it again failed with this:</p>
+
+  <div class="term">
+    <div class="term-top">server log</div>
+<pre><code>Failed to <mark class="e1">bind<sup>1</sup></mark> <mark class="e2">listener socket<sup>2</sup></mark> to <mark class="e3">&lt;server&gt;:&lt;port P&gt;<sup>3</sup></mark>
+Got <mark class="e4">error: '98, Address already in use'<sup>4</sup></mark></code></pre>
+  </div>
+  <ol class="decode">
+    <li><span class="k k1">1</span><span><b>bind</b>: claim the port, so you can listen on it.</span></li>
+    <li><span class="k k2">2</span><span><b>listener socket</b>: the "open entrance" the routers connect to.</span></li>
+    <li><span class="k k3">3</span><span><b>server:port P</b>: which address and port it tried to claim.</span></li>
+    <li><span class="k k4">4</span><span><b>error 98</b>: Linux says <b>something already holds this address and port.</b></span></li>
+  </ol>
+  <p>In short: the service said <i>"I want port P"</i>, and Linux said <i>"No, it's taken."</i></p>
+
+  <h3>It wasn't a config mistake</h3>
+  <p>A newer version of the service failed the <b>exact same way</b>. When every version fails identically, the problem isn't inside the service. <b>Something outside it was holding the port.</b></p>
+
+  <h3>Here's the weird part</h3>
+  <p>The usual reason for error 98 is boring: another program already listens on that port. So I checked who was listening on port P.</p>
+  <div class="vs">
+    <div class="said"><h4>What Linux said</h4><p>Port P is already in use</p></div>
+    <div class="mid">vs</div>
+    <div class="saw"><h4>What I saw</h4><p>Nobody is listening on port P</p></div>
+  </div>
+  <div class="then" aria-hidden="true">↓</div>
+  <div class="who">So who is holding the port?</div>
+  <p>"Nothing is listening" only rules out <b>listeners</b>. A port can also be held by an <b>open connection</b>. That's exactly what was going on.</p>
+
+  <details class="tech"><summary>For the technically curious</summary><div class="tb">
+    <ul>
+      <li>Error 98 is <code>EADDRINUSE</code>. It comes from <code>bind()</code>, the system call a program uses to claim an address and port.</li>
+      <li>On <code>bind()</code>, Linux checks its table of open sockets. If any socket already holds the same address and port, and the program didn't ask for permission to share it, Linux refuses.</li>
+    </ul>
+  </div></details>
+</section>
+
+<!-- ================= 4. OBSERVED ================= -->
+<section>
+  <h2 id="observed"><span class="n">4</span>What I observed</h2>
+  <p>Four checks. Each answer pointed to the next question.</p>
+
+  <ol class="steps">
+    <li><span class="sn">1</span>
+      <h3>Who is listening on port P?</h3>
+      <dl class="qa"><dt>Found</dt><dd><span class="pill bad">Nobody</span></dd><dt>Means</dt><dd>No other program took the port. The usual cause is ruled out.</dd></dl>
+      <details class="tech"><summary>Command and output</summary><div class="tb">
+        <div class="term"><pre><code><span class="dim">$</span> cat /proc/net/sctp/eps
+ ENDPT  SOCK  STY  SST  HBKT  LPORT  UID  INODE  LADDRS
+<span class="dim">(no rows)</span></code></pre></div>
+        <p><code>eps</code> lists SCTP listening entrances. No rows, nothing listening.</p>
+      </div></details>
+    </li>
+    <li><span class="sn">2</span>
+      <h3>Which connections are still open on port P?</h3>
+      <dl class="qa"><dt>Found</dt><dd><span class="pill neu">Router A: gone</span> <span class="pill orph">Router B: still open</span></dd><dt>Means</dt><dd>The port wasn't empty. One connection was still sitting on it.</dd></dl>
+      <details class="tech"><summary>Command and output</summary><div class="tb">
+        <div class="term"><pre><code><span class="dim">$</span> cat /proc/net/sctp/assocs   <span class="dim">(columns trimmed)</span>
+ ST  INODE   LPORT  RPORT  LADDRS      &lt;-&gt; RADDRS
+ <span class="amb">3   432560  P      17153  192.0.2.10  &lt;-&gt; *198.51.100.21 198.51.100.22</span></code></pre></div>
+        <ul>
+          <li><code>ST 3</code>: established, fully open.</li>
+          <li><code>INODE 432560</code>: the connection's ID number in Linux.</li>
+          <li><code>LPORT P</code>: the server's side of this connection sits on port P.</li>
+          <li>Two remote addresses: Router B's two network paths.</li>
+        </ul>
+      </div></details>
+    </li>
+    <li><span class="sn">3</span>
+      <h3>Who owns that connection?</h3>
+      <dl class="qa"><dt>How</dt><dd>Every connection has an ID number, like a <b>license plate</b>. Linux keeps a register of which process holds which plate. I looked it up.</dd><dt>Found</dt><dd><span class="pill bad">The server's own process</span></dd><dt>Means</dt><dd>No outsider involved. <b>The server was blocking itself.</b></dd></dl>
+      <details class="tech"><summary>Command and output</summary><div class="tb">
+        <div class="term"><pre><code><span class="dim">$</span> sudo find /proc/[0-9]*/fd -lname 'socket:\[432560\]'
+/proc/191338/fd/169
+<span class="dim">$</span> ps -fp 191338
+<span class="dim">... 191338 ... java ... (the server process, running for days)</span></code></pre></div>
+        <ul>
+          <li><code>/proc/&lt;PID&gt;/fd/</code> lists every open file and socket of a process. A socket shows up as a link named <code>socket:[inode]</code>.</li>
+          <li>Found in <b>process 191338</b> as <b>file descriptor 169</b> (the handle number a process uses for an open file or socket).</li>
+        </ul>
+      </div></details>
+    </li>
+    <li><span class="sn">4</span>
+      <h3>What is the server doing with it?</h3>
+      <dl class="qa"><dt>Found</dt><dd>
+        <b>a)</b> Router B kept sending messages, <b>hundreds per second</b>, and the server <span class="c-bad">rejected every one</span>: no handler, because the service was stopped.<br>
+        <b>b)</b> Every <b>10 seconds</b>, the Diameter stack tried to reopen its SCTP listener on port P, and failed with <span class="c-bad">error 98</span>.
+      </dd><dt>Means</dt><dd>The server was fighting itself. One part kept the old connection alive. Another kept failing to open the entrance on the same port.</dd></dl>
+      <details class="tech"><summary>Log lines (shortened)</summary><div class="tb">
+        <div class="term"><pre><code><span class="dim"># hundreds of times per second:</span>
+SEVERE No request listener registered ... for message ...
+<span class="dim"># every 10 seconds:</span>
+SEVERE Listener restart failed,
+       Got error: '98,Address already in use'
+<span class="err">java.net.BindException: Got error: '98,
+       Address already in use' when 'opening socket'</span></code></pre></div>
+      </div></details>
+    </li>
+  </ol>
+
+  <div class="callout key"><p>The port was held by an open connection that belonged to the server itself, and that connection was still alive.</p></div>
+</section>
+
+<!-- ================= 5. WHY ================= -->
+<section>
+  <h2 id="why"><span class="n">5</span>Why it happened</h2>
+  <p>When a service stops, the platform should clean up everything it used. <b>One cleanup step was missed.</b> Everything else followed from that.</p>
+
+  <div class="cmp">
+    <div>
+      <h4>What should happen</h4>
+      <ol>
+        <li><span class="ic c-ok">✓</span>Remove the message handler</li>
+        <li><span class="ic c-ok">✓</span>Close the SCTP listener</li>
+        <li><span class="ic c-ok">✓</span>Close Router A's connection</li>
+        <li><span class="ic c-ok">✓</span>Close Router B's connection</li>
+      </ol>
+    </div>
+    <div>
+      <h4>What actually happened</h4>
+      <ol>
+        <li><span class="ic c-ok">✓</span>Remove the message handler</li>
+        <li><span class="ic c-ok">✓</span>Close the SCTP listener</li>
+        <li><span class="ic c-ok">✓</span>Close Router A's connection</li>
+        <li class="miss"><span class="ic c-bad">✗</span><span><b>Router B's connection kept open</b> by the Diameter stack</span></li>
+      </ol>
+    </div>
+  </div>
+  <p class="muted">From the outside I can't see why one connection closed and the other didn't. The vendor's own documentation lists this case: a service with an open SCTP connection can't always be stopped cleanly.</p>
+
+  <h3>What followed, in order</h3>
+  <ol class="chain">
+    <li class="o"><b>Router B's connection still holds port P.</b><span>A connection that came in through port P stays on port P while it's open.</span></li>
+    <li class="b"><b>The service starts and asks Linux for port P.</b><span>Linux finds Router B's connection still there and refuses: error 98.</span></li>
+    <li class="b"><b>Every new start fails the same way.</b><span>A new version doesn't help. The blocker isn't in the service.</span></li>
+    <li class="b"><b>The Diameter stack retries its SCTP listener every 10 seconds.</b><span>Same leftover connection, same error 98.</span></li>
+    <li class="o"><b>Router B keeps sending Diameter messages.</b><span>Its connection looks healthy, most likely because the Diameter stack still answers its watchdog checks. Every message gets rejected.</span></li>
+    <li><b>Router A can't get back in.</b><span>Its connection closed, and there's no open entrance to call.</span></li>
+  </ol>
+
+  <h3>Why Linux didn't clean it up</h3>
+  <ol class="lines">
+    <li>The <b>service</b> stopped, but Linux doesn't know services exist.</li>
+    <li>The <b>process</b> was still running.</li>
+    <li>To Linux, the process still owned Router B's connection.</li>
+    <li>So Linux kept the connection, and with it, the claim on port P.</li>
+  </ol>
+
+  <h3>Who's to blame: Java, the JVM, or Linux?</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Layer</th><th>What it did</th><th>At fault?</th></tr></thead>
+    <tbody>
+      <tr><td><b>The application's Diameter stack</b><br><small class="muted">Java code plus a native SCTP library</small></td><td>Didn't close Router B's SCTP connection when the service stopped</td><td><span class="pill bad">Root cause</span></td></tr>
+      <tr><td><b>The JVM</b><br><small class="muted">the program that runs Java code</small></td><td>Just ran the application's code</td><td><span class="pill neu">No</span></td></tr>
+      <tr><td><b>Linux</b></td><td>Refused to give away a port that was really still in use</td><td><span class="pill ok">No, did its job</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout key"><p>Linux reported the problem. The application caused it.</p></div>
+
+  <details class="tech"><summary>How the error travels up the layers</summary><div class="tb">
+    <ol class="travel">
+      <li><b>Linux kernel</b><span><code>errno 98 (EADDRINUSE)</code></span></li>
+      <li><b>Native SCTP library</b><span><code>Got error: '98,Address already in use' when 'opening socket'</code></span></li>
+      <li><b>Java</b><span><code>java.net.BindException</code></span></li>
+    </ol>
+    <p>The word <code>nativeref</code> in the logs shows the app talks to SCTP through a native library (C code called from Java). Without the source code, we can't say whether the Java part or the native part forgot the connection.</p>
+  </div></details>
+</section>
+
+<!-- ================= 6. THE PUZZLE ================= -->
+<section>
+  <h2 id="answer"><span class="n">6</span>The puzzle: one port, many connections</h2>
+  <p>Back to the question from the top:</p>
+  <div class="callout pic"><b>If port P was "in use" and the service couldn't get it, how could the same port serve two routers right after the restart?</b></div>
+  <div class="callout key"><p>The port was never blocked from <u>serving</u> connections. It was blocked from getting a <u>new owner</u>.</p></div>
+  <p>Three small ideas make this click.</p>
+
+  <h3>Idea 1: Linux tells connections apart by four values</h3>
+  <p>Not by the port alone. After the fix, the two connections looked like this:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Connection</th><th class="same">Local address</th><th class="same">Local port</th><th class="diff">Remote address</th><th class="diff">Remote port</th></tr></thead>
+    <tbody>
+      <tr><td><b>Router A</b></td><td class="same">192.0.2.10</td><td class="same"><b>P</b></td><td class="diff">198.51.100.11</td><td class="diff">17921</td></tr>
+      <tr><td><b>Router B</b></td><td class="same">192.0.2.10</td><td class="same"><b>P</b></td><td class="diff">198.51.100.21</td><td class="diff">17153</td></tr>
+    </tbody>
+  </table></div>
+  <ol class="lines">
+    <li><span class="c-ok">Same local side</span>: same server, same port P.</li>
+    <li><span class="c-orph">Different remote side</span>: different router, different port.</li>
+    <li>So these are <b>two different connections</b> sharing one port. Totally normal. A website serves thousands of visitors through one port this way.</li>
+  </ol>
+
+  <h3>Idea 2: claiming a port and sharing a port are different actions</h3>
+  <p>Linux asks a different question for each.</p>
+  <div class="lanes">
+    <div class="lane strict">
+      <div class="who2">A <b>new listener</b> wants port P</div>
+      <div class="q"><b>Claim</b> (bind)<br>"Is any other socket holding port P?"</div>
+      <div class="out"><span class="pill bad">Yes: refuse, error 98</span><span class="pill ok">No: allow</span></div>
+    </div>
+    <div class="lane open">
+      <div class="who2">A <b>router connects</b> to an existing listener</div>
+      <div class="q"><b>Share</b> (accept)<br>"Is this a new caller?"</div>
+      <div class="out"><span class="pill ok">Yes: allow, same port, its own connection</span></div>
+    </div>
+  </div>
+
+  <h3>Idea 3: parents and children</h3>
+  <ol class="lines">
+    <li>The <b>listener</b> is the <b>parent</b>. It owns port P.</li>
+    <li>Each connection it accepts is a <b>child</b>. A child shares its parent's port.</li>
+    <li>If the parent goes away and a child stays, that child is an <span class="c-orph">orphan</span>. It still holds port P, but belongs to no listener.</li>
+  </ol>
+  <div class="callout key"><p>Children may share their parent's port. A new, unrelated listener may not claim a port while any other socket still holds it.</p></div>
+
+  <h3>Before and after the fix</h3>
+  <div class="ba">
+    <div class="before">
+      <h4>Before: blocked</h4>
+      <ul class="tree"><li><span class="root">port P</span>
+        <ul>
+          <li><span class="box gone">old listener: closed</span></li>
+          <li><span class="box orph">connection to Router B (orphan)</span></li>
+        </ul>
+      </li></ul>
+      <div class="verdict bad"><b>New listener:</b> "Can I have port P?"<br><b>Linux:</b> "No. Something still holds it." <span class="c-bad">Error 98.</span></div>
+    </div>
+    <div class="after">
+      <h4>After: working</h4>
+      <ul class="tree"><li><span class="root">port P</span>
+        <ul>
+          <li><span class="box owner">new listener (the owner)</span>
+            <ul>
+              <li><span class="box okc">connection to Router A</span></li>
+              <li><span class="box okc">connection to Router B</span></li>
+            </ul>
+          </li>
+        </ul>
+      </li></ul>
+      <div class="verdict ok">Both connections are <b>children of the current listener</b>, so sharing port P is allowed. <span class="c-ok">No error.</span></div>
+    </div>
+  </div>
+
+  <div class="answer">
+    <h3>So, the answer to the puzzle</h3>
+    <ol>
+      <li><span class="r">Before:</span> a <b>new listener</b> asked to <b>claim</b> port P. Linux found Router B's <span class="y">orphan</span> connection still on it, not a child of this new listener, and refused.</li>
+      <li><span class="g">After the restart:</span> Linux had closed every old socket, so port P was <b>empty</b>. The new listener claimed it with no problem.</li>
+      <li>Then Router A and Router B connected. Linux only had to <b>share</b> the port with <b>children of the current listener</b>, which is always allowed.</li>
+    </ol>
+    <p>Same port, same IP. What changed was <b>who owned it</b>.</p>
+  </div>
+
+  <h3>Why Linux has this rule</h3>
+  <p>To protect connections. If a new program could grab a port while old connections still live on it, messages meant for the old connection could reach the wrong program. So Linux waits until the port is really free, unless the program explicitly asks to share.</p>
+
+  <details class="tech"><summary>For the technically curious</summary><div class="tb">
+    <ul>
+      <li><b>Why the orphan could exist:</b> <code>STY 2</code> in <code>/proc/net/sctp</code> means <b>TCP-style SCTP</b> (one-to-one). Every accepted connection gets <b>its own socket</b>, separate from the listener. So a connection can outlive its listener.</li>
+      <li><b>SO_REUSEADDR</b> is a socket option that says "let me bind even if old connections still exist on this port." The Diameter stack apparently doesn't set it. With it, the start would likely have worked, but the orphan would still be there with Router B sending into it.</li>
+      <li><b>Not just SCTP:</b> a TCP server that closes its listener while an accepted connection is still open hits the same error 98 on the next listen, without SO_REUSEADDR.</li>
+      <li>The four-value picture is a simplification. With multi-homing, SCTP uses <b>sets</b> of addresses on each side, but the idea is the same.</li>
+    </ul>
+  </div></details>
+</section>
+
+<!-- ================= 7. FIX ================= -->
+<section>
+  <h2 id="fix"><span class="n">7</span>The fix, and why it worked</h2>
+
+  <h3>The options</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Option</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>Start the service again, or a newer version</td><td><span class="pill bad">Fails</span> The blocker isn't in the service.</td></tr>
+      <tr><td>Ask the router side to reset Router B's connection</td><td><span class="pill orph">Maybe</span> The process still holds the socket, so the port could stay taken.</td></tr>
+      <tr><td>Close that one connection inside the live process with a debugger</td><td><span class="pill bad">Too risky</span> Could crash the process or break other connections.</td></tr>
+      <tr><td>Move the service to another port</td><td><span class="pill bad">No traffic</span> The routers send to port P.</td></tr>
+      <tr><td><b>Restart the whole server process</b></td><td><span class="pill ok">Guaranteed</span> Linux closes every socket of a process when it ends.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>The fix, step by step</h3>
+  <ol class="strip">
+    <li class="k"><b class="t">Force-stop the process</b>Linux closes <b>all</b> its sockets, including the orphan.</li>
+    <li><b class="t">Port P is free</b>Nothing holds it any more.</li>
+    <li><b class="t">Start the process and the service</b>A fresh process. The new SCTP listener claims port P.</li>
+    <li><b class="t">Routers reconnect</b>They were retrying every few seconds. A and B each get a new connection.</li>
+  </ol>
+
+  <h3>Why it worked: asking vs forcing</h3>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Stop the service</th><th>Stop the process</th></tr></thead>
+    <tbody>
+      <tr><td><b>Who cleans up connections?</b></td><td>The application's own code</td><td class="hl"><b>Linux</b></td></tr>
+      <tr><td><b>Can it forget one?</b></td><td class="c-bad">Yes. That's what happened</td><td class="c-ok">No, never</td></tr>
+      <tr><td><b>Here</b></td><td>Router B's connection left open</td><td>Everything closed, port free</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout key"><p>A stop asks the application to clean up. A process exit makes Linux clean up. The application forgot one connection. Linux doesn't forget.</p></div>
+
+  <ol class="lines">
+    <li><b>Why a forced stop?</b> The vendor's documentation covers this exact case: with a Diameter SCTP connection open, a normal stop may not finish cleanly. The documented way is a forced stop, then a start.</li>
+    <li><b>What got restarted?</b> Only that one server process. The other services inside it blinked for a moment. Other programs on the machine kept running.</li>
+  </ol>
+
+  <h3>How I confirmed it</h3>
+  <ul class="checks">
+    <li><span>The server runs under a <b>new</b> process ID. The old process is gone.</span></li>
+    <li><span>Linux shows a <b>listener</b> on port P again.</span></li>
+    <li><span>Linux shows <b>two connections</b> on port P, one per router, both established.</span></li>
+    <li><span>Every connection has a <b>new ID number</b>. No leftovers.</span></li>
+    <li><span>The flood of rejected messages in the logs <b>stopped</b>.</span></li>
+  </ul>
+
+  <details class="tech"><summary>The healthy state, in Linux's own words</summary><div class="tb">
+    <div class="term"><pre><code><span class="dim">$</span> cat /proc/net/sctp/eps      <span class="dim">(trimmed)</span>
+ SST  LPORT  INODE      LADDRS
+ <span class="okc">10   P      108368138  192.0.2.10</span>              <span class="dim">&lt;- listener back (10 = listening)</span>
+
+<span class="dim">$</span> cat /proc/net/sctp/assocs   <span class="dim">(trimmed)</span>
+ ST  INODE      LPORT  RPORT  RADDRS
+ <span class="okc">3   108364602  P      17153  *198.51.100.21 198.51.100.22</span>   <span class="dim">&lt;- Router B</span>
+ <span class="okc">3   108364601  P      17921  *198.51.100.11 198.51.100.12</span>   <span class="dim">&lt;- Router A</span></code></pre></div>
+    <ul>
+      <li>New inode numbers (108364601/2 instead of 432560) prove these are brand-new sockets.</li>
+      <li>The Diameter stack also bumped its <b>Origin-State-Id</b>, a counter a Diameter node raises on every restart. It tells the routers: "I restarted, old sessions with me are gone."</li>
+    </ul>
+  </div></details>
+</section>
+
+<!-- ================= 8. SIDE LESSON ================= -->
+<section>
+  <h2 id="logs"><span class="n">8</span>A side lesson: the evidence almost disappeared</h2>
+  <p>The server keeps its logs in <b>10 rotating files</b>. When one fills up, the oldest gets deleted. Normally that covers days. During this incident, the "rejected message" errors were landing at <b>hundreds of lines per second</b>.</p>
+  <div class="tiles" aria-hidden="true">
+    <span>~14 s</span><span>~14 s</span><span>~14 s</span><span>~14 s</span><span>~14 s</span><span>~14 s</span><span>~14 s</span><span>~14 s</span><span>~14 s</span><span>~14 s</span>
+  </div>
+  <div class="brace" aria-hidden="true"></div>
+  <p class="brace-l">10 files, about 14 seconds each: only the last ~2 minutes survived</p>
+  <p>By the time I looked, the logs from the moment the service stopped, and from the first failed starts, were <b>already gone</b>.</p>
+  <div class="callout key"><p>Copy the logs the moment an incident starts. An error flood can wipe the evidence in minutes.</p></div>
+  <details class="tech"><summary>A one-line snapshot command</summary><div class="tb">
+    <div class="term"><pre><code>tar czf ~/incident-$(date +%F-%H%M).tgz /path/to/logs/</code></pre></div>
+  </div></details>
+</section>
+
+<!-- ================= 9. TAKEAWAYS ================= -->
+<section>
+  <h2 id="takeaways"><span class="n">9</span>Takeaways</h2>
+  <ol class="take">
+    <li><b>"In use" doesn't mean "someone is listening"</b>Check for leftover connections too, not just listeners.</li>
+    <li><b>A stop is a request. A process exit is a guarantee.</b>If an app won't release a socket, restarting its process will.</li>
+    <li><b>Trust what Linux sees</b>After a stop, look at Linux's own view. No listener but live connections on the port means an orphan.</li>
+    <li><b>Inode, then fd, then process</b>This lookup finds the owner of any socket on Linux.</li>
+    <li><b>Plan the stop</b>Ask the peers to drop their connections first, or plan a process restart from the start.</li>
+    <li><b>Save the logs first</b>Then start digging.</li>
+  </ol>
+</section>
+
+<!-- ================= 10. CHEAT SHEET ================= -->
+<section>
+  <h2 id="cheatsheet"><span class="n">10</span>Command cheat sheet</h2>
+  <div class="term">
+    <div class="term-top">sctp-orphan-hunt.sh</div>
+<pre><code><span class="dim"># 1. Who is LISTENING (SCTP)?</span>
+cat /proc/net/sctp/eps
+
+<span class="dim"># 2. Which CONNECTIONS are open? Note the INODE column.</span>
+cat /proc/net/sctp/assocs
+
+<span class="dim"># 3. Which process owns socket INODE?</span>
+sudo find /proc/[0-9]*/fd -lname 'socket:\[INODE\]'
+
+<span class="dim"># 4. What is that process?</span>
+ps -fp PID</code></pre>
+  </div>
+  <p class="muted">For TCP, <code>ss -ltnp</code> (listeners) and <code>ss -tnp</code> (connections) show the owning process directly.</p>
+</section>
+
+<footer>
+  Names, addresses and identifiers in this post are changed or generic. The IP addresses come from ranges reserved for documentation.
+</footer>

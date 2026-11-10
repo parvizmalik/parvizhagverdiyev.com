@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getPosts, formatDate, postUrl } from '../lib/posts';
+import { getPosts, formatDate, postUrl, postText } from '../lib/posts';
 import { TYPES } from '../site.config';
 
 const plain = (md = '') =>
@@ -22,7 +22,7 @@ export const GET: APIRoute = async () => {
     type: TYPES[p.data.type].singular,
     description: p.data.description ?? '',
     tags: p.data.tags,
-    body: plain(p.body),
+    body: plain(postText(p)),
   }));
   return new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
 };

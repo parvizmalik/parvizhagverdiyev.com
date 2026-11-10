@@ -48,6 +48,14 @@ Put images in `public/images/` and reference them as `![Alt text](/images/photo.
 
 Diagrams can be written as inline SVG inside a `<figure class="diagram">` block (see `llms-cant-jump.md`), and math as `$$ ... $$` (LaTeX).
 
+### Visual posts (cards, diagrams, terminal blocks)
+
+A post with `format: visual` in its front matter takes its body from a hand-built HTML file
+instead of Markdown: `src/content/visual/<same-name-as-the-post>.html`. See
+`address-already-in-use` for an example. The building blocks (callouts, step lists, status pills,
+terminal blocks, before/after panels) are styled in `src/styles/ipost.css`. Give each section
+heading an id (`<h2 id="setup">`) and it appears in the table of contents.
+
 ## Edit your name, bio and links
 
 - Name, intro sentence, email and social links: `src/site.config.ts`

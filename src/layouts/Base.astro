@@ -10,9 +10,10 @@ interface Props {
   description?: string;
   type?: 'website' | 'article';
   published?: Date;
+  bodyClass?: string;
 }
 
-const { title, description = SITE.description, type = 'website', published } = Astro.props;
+const { title, description = SITE.description, type = 'website', published, bodyClass } = Astro.props;
 const fullTitle = title ? `${title} — ${SITE.name}` : SITE.name;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 ---
@@ -49,7 +50,7 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     </script>
     <slot name="head" />
   </head>
-  <body>
+  <body class={bodyClass}>
     <a class="skip" href="#main">Skip to content</a>
     <slot name="top" />
     <Header />
