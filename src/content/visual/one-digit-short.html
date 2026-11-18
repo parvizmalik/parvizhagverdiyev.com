@@ -1,0 +1,178 @@
+<!-- ================= HERO ================= -->
+<div class="hero">
+  <div class="term" role="img" aria-label="A roaming call record. Cell ID 3340201A2B0C3D4E5. The old rule took the first 5 characters as the network code and got 33402. The right code is 334020.">
+    <div class="term-top">roaming call record</div>
+<pre><code><span class="dim">cell ID       </span>3340201A2B0C3D4E5
+<span class="dim">old rule      </span>first 5 characters = network code
+<span class="dim">network code  </span><span class="err">33402</span>   <span class="dim"># should be</span> <span class="okc">334020</span></code></pre>
+  </div>
+</div>
+
+<p class="big">When a subscriber makes a call while roaming abroad, the call record must say which foreign operator carried it. In our records, that operator code was often wrong, and sometimes empty. Charging, reporting and every other system that used these records received bad input.</p>
+<p>This issue landed on my desk. I took it from the first symptom to a fix running in production.</p>
+
+<!-- ================= 1. HOW A CALL RECORD TRAVELS ================= -->
+<section>
+  <h2 id="travel"><span class="n">1</span>How a call record travels</h2>
+  <p>Every call creates a short log entry in the network, called a <b>call record</b>. The records do not go straight to billing. First they pass through a <b>mediation system</b>: software that collects every call record from the network, cleans it, joins the start and end of each call into one record, and delivers it to the systems that need it:</p>
+  <div class="gloss two">
+    <div><b>Charging</b>Bills the call. For a roaming call, it bills based on the foreign operator that carried the call.</div>
+    <div><b>The reporting database</b>Used for usage reports.</div>
+    <div><b>Fraud control</b>Watches for unusual use.</div>
+    <div><b>The data warehouse</b>Used for analytics.</div>
+  </div>
+</section>
+
+<!-- ================= 2. SYMPTOMS ================= -->
+<section>
+  <h2 id="symptoms"><span class="n">2</span>The symptoms</h2>
+  <div class="callout pic">
+    <span class="ct">Picture a heart</span>
+    Think of mediation as the heart of this data flow. It pumps records to every other system. When a patient has a heart problem, the symptoms show up in the arms, the lungs and the brain. That is what happened here:
+  </div>
+  <ul class="travel">
+    <li><b>Charging</b><span>Received roaming calls with the wrong partner operator, or with no partner at all. A call billed against the wrong partner gets the wrong tariff, and a call with no partner cannot be matched.</span></li>
+    <li><b>Reports</b><span>Showed wrong or empty partners.</span></li>
+    <li><b>Fraud control and analytics</b><span>Received a wrong location.</span></li>
+  </ul>
+  <div class="callout key"><p>On a sample day, about one in eight roaming voice records had no operator code at all.</p></div>
+
+  <figure class="diagram"><a class="canvas" href="/images/one-digit-short/1-patient-map.svg" target="_blank" rel="noopener"><img src="/images/one-digit-short/1-patient-map.svg" alt="The mobile network sends call records to mediation. Mediation has a fault: the network code was read with a fixed 5-digit rule. It sends records to charging, reports, fraud control and the data warehouse, and each shows a symptom: wrong or missing partner, wrong or empty partners, wrong location." width="1200" height="922" loading="lazy"></a><figcaption><b>One fault at the source, symptoms everywhere.</b> Mediation feeds every system, so a single wrong rule there reached all of them. Click or tap the diagram to open it full size.</figcaption></figure>
+</section>
+
+<!-- ================= 3. DIAGNOSIS ================= -->
+<section>
+  <h2 id="diagnosis"><span class="n">3</span>The diagnosis</h2>
+  <p>Each mobile operator has an ID called a <b>network code</b> (PLMN). It is a 3-digit country code plus a 2- or 3-digit operator code:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Operator</th><th class="same">Country code</th><th class="diff">Operator code</th><th>Network code</th></tr></thead>
+    <tbody>
+      <tr><td><b>Germany, operator 01</b></td><td class="same">262</td><td class="diff">01</td><td><b>262 01</b>, 5 digits</td></tr>
+      <tr><td><b>Mexico, operator 020</b></td><td class="same">334</td><td class="diff">020</td><td><b>334 020</b>, 6 digits</td></tr>
+    </tbody>
+  </table></div>
+
+  <p>Every call record also carries a short text from the network, the <b>access network info</b>. It says which network and which antenna the phone used. Inside it is the <b>cell ID</b>: the address of the antenna. The cell ID starts with the network code, followed by the area code and the antenna number.</p>
+
+  <h3>The old rule</h3>
+  <p>The old logic read the cell ID with a fixed rule: take the first 5 characters as the network code, and cut the cell ID at 16 characters. That works for 5-digit operators, and it breaks in three ways:</p>
+  <ol class="chain">
+    <li class="b"><b>A 6-digit code was cut to 5 digits.</b><span>334020 became 33402, which is a different code.</span></li>
+    <li class="b"><b>The cell ID lost a character in the wrong place.</b><span>The area and antenna parts were shifted.</span></li>
+    <li class="b"><b>Some roaming records carry no cell ID at all.</b><span>For those, the network code came out empty.</span></li>
+  </ol>
+  <div class="callout key"><p>Nothing in the cell ID text tells you whether the code has 5 or 6 digits. A fixed rule cannot know.</p></div>
+
+  <figure class="diagram"><a class="canvas" href="/images/one-digit-short/2-cell-id-anatomy.svg" target="_blank" rel="noopener"><img src="/images/one-digit-short/2-cell-id-anatomy.svg" alt="Two cell IDs shown one character per box. The German one starts with the 5-digit network code 26201, and the old rule reads 26201 correctly. The Mexican one starts with the 6-digit network code 334020; the old rule reads 33402, which is wrong, and its cut after 16 characters loses the last character." width="1200" height="608" loading="lazy"></a><figcaption><b>Same rule, two results.</b> The fixed cut is right for a 5-digit network code and wrong for a 6-digit one. Click or tap the diagram to open it full size.</figcaption></figure>
+</section>
+
+<!-- ================= 4. TREATMENT DECISION ================= -->
+<section>
+  <h2 id="decision"><span class="n">4</span>The treatment decision</h2>
+  <p>There were two ways to treat this.</p>
+  <div class="ba">
+    <div class="before">
+      <h4>Fix each destination</h4>
+      <ul class="plain">
+        <li>Four systems</li>
+        <li>Four teams</li>
+        <li>Four schedules</li>
+        <li>Four versions of the same logic</li>
+      </ul>
+    </div>
+    <div class="after">
+      <h4>Treat the heart <span class="pill ok">chosen</span></h4>
+      <ul class="plain">
+        <li>Fix it once, in mediation</li>
+        <li>Every destination receives correct values in the format it already uses</li>
+      </ul>
+    </div>
+  </div>
+  <p>I chose the second, and the key question was where the "5 or 6 digits" answer should come from. A hand-made list of countries goes out of date. But the charging system already keeps the list of every roaming partner it bills against, with each partner's full code.</p>
+  <div class="callout key"><p>If mediation reads that same list, mediation and charging can never disagree.</p></div>
+</section>
+
+<!-- ================= 5. HOW THE FIX WORKS ================= -->
+<section>
+  <h2 id="fix"><span class="n">5</span>How the fix works</h2>
+  <p>The fix has two parts: a daily copy of the partner list, and a new parsing rule that uses it.</p>
+
+  <h3>Every day</h3>
+  <ol class="lines">
+    <li>A scheduler (cron, the Linux tool that runs a task at a fixed time) starts a small Java export job.</li>
+    <li>The job reads the roaming partner list from the charging system's database. It only reads; it never writes there.</li>
+    <li>It keeps only valid codes and measures the shortest and longest code in the list. Nobody types these lengths by hand.</li>
+    <li>It writes everything to a file. It writes to a temporary file first and swaps it in only when everything succeeded. If anything fails, yesterday's file stays in place.</li>
+    <li>Mediation loads the file into a <b>lookup</b>: a list held in memory that it can check in microseconds.</li>
+  </ol>
+
+  <h3>For every call record</h3>
+  <p>Mediation finds the network code and cell once. Every destination then reads the result. No other system had to change anything.</p>
+
+  <figure class="diagram"><a class="canvas" href="/images/one-digit-short/3-fix-sequence.svg" target="_blank" rel="noopener"><img src="/images/one-digit-short/3-fix-sequence.svg" alt="Sequence diagram with six parts: scheduler, export job, charging database, partner file, mediation and destinations. 1: the scheduler starts the daily export. 2: the export job reads the roaming partner list, read only, and gets the partner network codes back. 3: it keeps valid codes and measures the shortest and longest code. 4: it writes a temporary file and swaps it in; if anything fails, yesterday's file stays. 5: mediation loads the file into an in-memory lookup. Then, for every call record: 6: mediation finds the network code and the cell ID once. 7: it sends correct values to the destinations in the same formats as before." width="1200" height="1206" loading="lazy"></a><figcaption><b>The fix, step by step.</b> A daily copy of the partner list keeps mediation in line with charging. Every record is then checked against it. Click or tap the diagram to open it full size.</figcaption></figure>
+</section>
+
+<!-- ================= 6. PARSING LOGIC ================= -->
+<section>
+  <h2 id="parsing"><span class="n">6</span>The parsing logic</h2>
+
+  <h3>When the cell ID is present</h3>
+  <ol class="lines">
+    <li>Read the cell ID up to its end marker, at any length.</li>
+    <li>If it starts with the home network code, the network code is the home code.</li>
+    <li>Otherwise, try the longest possible code first and check it against the partner list. If it isn't found, try one digit shorter. The first match wins.</li>
+    <li>If nothing matches, use 5 digits, which was the old rule and is right for most operators.</li>
+    <li>Rebuild the cell ID in the short form the destinations already expect.</li>
+  </ol>
+
+  <h3>When there is no cell ID</h3>
+  <p>The record still names the network the phone visited, for example <code>ims.mnc020.mcc334.3gppnetwork.org</code>. This name always writes the operator part with 3 digits and pads short ones with a zero, so 01 appears as 001.</p>
+  <ol class="lines">
+    <li>Read the country code (334) and the 3-digit operator part (020).</li>
+    <li>If the operator part does not start with 0, the code must be 6 digits.</li>
+    <li>If the 6-digit form is in the partner list, use it: <b>334020</b>.</li>
+    <li>Otherwise, drop the padding zero: <b>262 001 → 26201</b>.</li>
+    <li>The record carries the network code as its location. Before relying on this, I confirmed with the charging team that a location with only the network code is accepted.</li>
+  </ol>
+
+  <figure class="diagram"><a class="canvas" href="/images/one-digit-short/4-parsing-flow.svg" target="_blank" rel="noopener"><img src="/images/one-digit-short/4-parsing-flow.svg" alt="Flowchart. A call record arrives. Does it have a cell ID? Yes: read the cell ID up to its end marker; if it starts with the home code, the network code is the home code; otherwise try the longest code first, then one digit shorter, against the partner list, and use 5 digits if nothing matches; then rebuild the cell ID in the short form the destinations expect. No: read the visited network name; if the operator part does not start with 0, use the 6-digit code; if it does, check whether the 6-digit form is in the partner list; if yes, use the 6-digit code such as 334020; if no, drop the padding zero to get 5 digits such as 26201; the location is the network code only. Both paths end with a correct network code for every destination." width="1240" height="1093" loading="lazy"></a><figcaption><b>Two paths, one result.</b> Blue steps use the partner list from the charging system. Click or tap the diagram to open it full size.</figcaption></figure>
+
+  <h3>Three examples</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Input</th><th>Case</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>262011A2B0C3D4E5</code></td><td>5-digit operator</td><td class="same"><code>262011A2BC3D4E5</code></td></tr>
+      <tr><td><code>3340201A2B0C3D4E5</code></td><td>6-digit operator</td><td class="same"><code>3340201A2BC3D4E5</code></td></tr>
+      <tr><td>no cell ID, visited <code>mnc020.mcc334</code></td><td>Visited network fallback</td><td class="same"><code>334020</code></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= 7. PROVING IT ================= -->
+<section>
+  <h2 id="proving"><span class="n">7</span>Proving it</h2>
+  <ol class="strip">
+    <li><b class="t">Test system with real records</b>I ran real call records through a copy of the setup and compared every destination's output, field by field.</li>
+    <li><b class="t">Agreement with each system owner</b>Each value and field position was confirmed before go-live.</li>
+    <li><b class="t">Step-by-step rollout</b>I backed up the configuration first, then deployed one element at a time in a quiet window.</li>
+    <li><b class="t">Checks on live output</b>In the first week I read every roaming output file and the reporting tables.</li>
+  </ol>
+
+  <h3>Results in the first week</h3>
+  <ul class="checks">
+    <li><span><b>100%</b> of roaming voice records carried the correct network code, against about one in eight empty before.</span></li>
+    <li><span>About <b>12%</b> of records were recovered through the visited network.</span></li>
+    <li><span><b>Zero</b> home records changed, across millions checked.</span></li>
+    <li><span><b>Zero</b> code length mismatches in the reporting database.</span></li>
+  </ul>
+</section>
+
+<!-- ================= 8. TAKEAWAYS ================= -->
+<section>
+  <h2 id="takeaways"><span class="n">8</span>What I took away</h2>
+  <ol class="take">
+    <li><b>Never read a variable-length value with a fixed-length rule.</b>Read to the delimiter, then decide the length from data.</li>
+    <li><b>Use the downstream system's own reference data.</b>When two systems decide from the same list, they cannot drift apart.</li>
+    <li><b>Treat the heart, not each organ.</b>One central fix corrected every destination, and no other team had to change anything.</li>
+  </ol>
+</section>

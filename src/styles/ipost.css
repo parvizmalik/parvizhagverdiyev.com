@@ -363,3 +363,23 @@ body.visual { --accent:#2B59D9; --accent-soft:#E8EEFC; --selection:#d6e1fb; }
 @media (max-width:620px){.ipost .take{grid-template-columns:1fr}}
 
 .ipost footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);font-size:.85rem;color:var(--ink-3)}
+
+/* ----- Diagram images (drawn at ~1200px; click opens full size) ----- */
+.ipost figure.diagram{margin:1.6em 0}
+.ipost figure.diagram .canvas{display:block;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#F8FAFC}
+.ipost figure.diagram img{display:block;width:100%;height:auto}
+.ipost figure.diagram figcaption{font-size:.85rem;color:var(--ink-2);margin-top:.6em;line-height:1.5}
+.ipost figure.diagram figcaption b{color:var(--fg)}
+@media (prefers-color-scheme:dark){:root:not([data-theme='light']) .ipost figure.diagram img{filter:brightness(.93)}}
+:root[data-theme='dark'] .ipost figure.diagram img{filter:brightness(.93)}
+
+/* ----- Plain check / cross lists inside before-after panels ----- */
+.ipost ul.plain{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.ipost ul.plain li{position:relative;padding-left:22px;font-size:.95rem}
+.ipost ul.plain li::before{position:absolute;left:0;font-weight:600}
+.ipost .before ul.plain li::before{content:"✗";color:var(--bad)}
+.ipost .after ul.plain li::before{content:"✓";color:var(--ok)}
+.ipost .ba h4 .pill{margin-left:6px;vertical-align:1px}
+.ipost .gloss.two{grid-template-columns:repeat(2,1fr)}
+@media (max-width:520px){.ipost .gloss.two{grid-template-columns:1fr}}
+.ipost .take li:last-child:nth-child(odd){grid-column:1/-1}
