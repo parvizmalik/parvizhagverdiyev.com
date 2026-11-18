@@ -15,6 +15,10 @@ export const SITE = {
     { label: 'X', href: 'https://x.com/mrhagverdiyev' },
     { label: 'GitHub', href: 'https://github.com/parvizmalik' },
   ] as { label: string; href: string }[],
+  // Cloudflare Web Analytics: private visitor stats, visible only in your Cloudflare account.
+  // Paste the token from Cloudflare (Web Analytics -> your site -> "Manage site" snippet).
+  // It is not a secret: it appears in every page's source. Leave empty to turn analytics off.
+  cloudflareAnalyticsToken: '',
 };
 
 // The kinds of writing on the site. The key is what you put in a post's
